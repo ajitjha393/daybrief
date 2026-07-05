@@ -8,18 +8,29 @@ import { AdoPullSchema, adoListSchema, type AdoPull } from './schemas.js'
 // the configured repo list (empty list = everything in the project).
 export async function fetchPulls(cfg: AdoConfig): Promise<Pull[]> {
   const out: Pull[] = []
+  const errors: string[] = []
   for (const project of cfg.projects) {
-    const data = await adoGet(
-      cfg,
-      `${encodeURIComponent(project)}/_apis/git/pullrequests?searchCriteria.status=active&$top=200&api-version=7.1`,
-      adoListSchema(AdoPullSchema),
-    )
+    let data
+    try {
+      data = await adoGet(
+        cfg,
+        `${encodeURIComponent(project)}/_apis/git/pullrequests?searchCriteria.status=active&$top=200&api-version=7.1`,
+        adoListSchema(AdoPullSchema),
+      )
+    } catch (e) {
+      // One bad project name (or a project you lost access to) must not
+      // blank every other project's lanes.
+      errors.push(`${project}: ${e instanceof Error ? e.message : String(e)}`)
+      continue
+    }
     for (const raw of data.value) {
       const repo = raw.repository?.name
       if (cfg.repos.length > 0 && (repo === undefined || !cfg.repos.includes(repo))) continue
       out.push(normalizePull(raw, cfg.org, project))
     }
   }
+  if (errors.length === cfg.projects.length) throw new Error(errors.join(' · '))
+  for (const err of errors) console.error(`\x1b[2m◆ ado (pulls): ${err}\x1b[0m`)
   return out
 }
 

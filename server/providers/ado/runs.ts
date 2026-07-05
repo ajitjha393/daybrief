@@ -9,18 +9,27 @@ import { AdoBuildSchema, adoListSchema, type AdoBuild } from './schemas.js'
 // in-progress runs surface ahead of their previous finished run.
 export async function fetchRuns(cfg: AdoConfig): Promise<Run[]> {
   const latest = new Map<string, Run>()
+  const errors: string[] = []
   for (const project of cfg.projects) {
-    const data = await adoGet(
-      cfg,
-      `${encodeURIComponent(project)}/_apis/build/builds?$top=100&queryOrder=queueTimeDescending&api-version=7.1`,
-      adoListSchema(AdoBuildSchema),
-    )
+    let data
+    try {
+      data = await adoGet(
+        cfg,
+        `${encodeURIComponent(project)}/_apis/build/builds?$top=100&queryOrder=queueTimeDescending&api-version=7.1`,
+        adoListSchema(AdoBuildSchema),
+      )
+    } catch (e) {
+      errors.push(`${project}: ${e instanceof Error ? e.message : String(e)}`)
+      continue
+    }
     for (const raw of data.value) {
       const name = raw.definition?.name
       if (name === undefined || latest.has(name)) continue
       latest.set(name, normalizeRun(raw))
     }
   }
+  if (errors.length === cfg.projects.length) throw new Error(errors.join(' · '))
+  for (const err of errors) console.error(`\x1b[2m◆ ado (runs): ${err}\x1b[0m`)
   return [...latest.values()]
 }
 
