@@ -59,6 +59,7 @@ export function normalizePull(raw: AdoPull, org: string, project: string): Pull 
     updatedAt: null, // the ADO list payload doesn't carry a last-activity time
     isDraft: raw.isDraft,
     mergeBlocked: raw.mergeStatus === 'conflicts' || raw.mergeStatus === 'failure',
+    targetBranch: raw.targetRefName !== undefined ? raw.targetRefName.replace(/^refs\/heads\//, '') : null,
     reviewers,
     ci: 'none', // PR-level policy checks are a v0.2 call
   }

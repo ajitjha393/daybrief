@@ -9,6 +9,7 @@ export const BbPullSchema = z.object({
   created_on: z.string().optional(),
   updated_on: z.string().optional(),
   links: z.object({ html: z.object({ href: z.string() }).optional() }).optional(),
+  destination: z.object({ branch: z.object({ name: z.string() }).optional() }).optional(),
 })
 
 export const BbPullListSchema = z.object({

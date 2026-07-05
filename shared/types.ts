@@ -30,6 +30,8 @@ export interface Pull {
   updatedAt: number | null
   isDraft: boolean
   mergeBlocked: boolean
+  /** Branch the PR merges into (e.g. develop, release/2.5) — null when unknown. */
+  targetBranch: string | null
   reviewers: Reviewer[]
   ci: RunStatus
 }

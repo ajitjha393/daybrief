@@ -36,6 +36,7 @@ export function normalizePull(raw: BbPull, workspace: string, repo: string): Pul
     updatedAt: ms(raw.updated_on),
     isDraft: false,
     mergeBlocked: false,
+    targetBranch: raw.destination?.branch?.name ?? null,
     reviewers: [],
     ci: 'none',
   }
