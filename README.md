@@ -117,7 +117,7 @@ morning question spans all three.
 |---|---|---|
 | Azure DevOps | `"auth": "az"` → your existing `az login` (zero setup) · `"auth": "pat"` → `ADO_PAT` | PRs + reviewer votes + latest run per pipeline |
 | Jira | `JIRA_EMAIL` + `JIRA_API_TOKEN` (an [API token](https://id.atlassian.com/manage-profile/security/api-tokens), never your password) | your JQL or a sane personal default; blocked = blocked-ish status or `blocked` label |
-| Bitbucket | `BITBUCKET_USER` + `BITBUCKET_APP_PASSWORD` | open PRs (reviewer detail lands in v0.2) |
+| Bitbucket | `BITBUCKET_USER` + `BITBUCKET_APP_PASSWORD` | open PRs with reviewers (per-PR detail on the newest slice) |
 
 **Prefer a file over env vars?** Drop a `daybrief.secrets.json` next to the
 config (the starter `.gitignore` already excludes it — never commit it):
@@ -140,9 +140,9 @@ unknown, never guessed.
 
 ## Roadmap
 
-- **v0.2** — team radiator view (`/team`: stale-PR wall, sprint pulse per person) · Bitbucket reviewers + pipelines · ADO PR-level policy/CI status
-- **v0.3** — morning digest posted to a Teams/Slack webhook — the brief for people who won't open a dashboard
-- **later** — GitHub/GitLab providers · release-branch radar
+- **v0.5** — release radar: branch drift, pending cherry-picks across `release/*`, "merged to develop but not release" alerts
+- **v0.6** — desktop notifications with per-item snooze/ack · Bitbucket pipelines
+- **later** — GitHub/GitLab providers · deployable radiator (Docker + auth)
 
 ## Development
 
