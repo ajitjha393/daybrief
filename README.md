@@ -36,11 +36,27 @@ npx daybrief          # polls, serves, opens your brief
 - **Your PRs in flight** — who each one is waiting on, approvals so far,
   merge-conflict flags, and a green *ready to merge* when it's truly unblocked.
 - **Your tickets** — open Jira work, blocked items floated to the top.
-- **Pipelines** — latest run per pipeline, failures first, "1 failure needs
-  eyes" instead of a wall of green you have to scan.
+- **Pipelines** — latest run per pipeline, failures first; the green wall
+  collapses behind a count instead of demanding a scroll.
+- **Group reviews** — ADO teams often assign PRs to a group (`SG_Developers`)
+  instead of people. daybrief surfaces those in your review lane when the repo
+  is one you're demonstrably active in (or listed in `groupReviewRepos`),
+  marked *via group* so you know it's a softer signal.
+- **Standup, drafted** — a copy-pasteable summary at the bottom: what you're
+  working on, PRs in flight and who they wait on, reviews you owe — and a
+  Blockers line **only when something is genuinely blocked**.
+- **Team view** (`#team`) — the radiator: every open PR oldest-first, a
+  per-person pulse (open PRs / reviews owed / tickets / blocked — counts,
+  never rankings), and blocked work team-wide.
 
-Updates stream in live (SSE); a provider having a bad moment shows its error
-in the header while its last good data stays on the board.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img alt="daybrief team view" src="docs/screenshot-team.png">
+</picture>
+
+Updates stream in live (SSE); long lists render progressively as you scroll;
+a provider having a bad moment shows its error in the header while its last
+good data stays on the board.
 
 ## The stack nobody builds for
 
@@ -71,8 +87,17 @@ morning question spans all three.
 {
   "me": { "name": "Alice", "ado": "alice@co.com", "jira": "alice@co.com", "bitbucket": "alice-dev" },
   "pollSeconds": 90,
-  "ado": { "org": "yourorg", "projects": ["Fleet"], "repos": [], "auth": "az" },
-  "jira": { "site": "yourorg.atlassian.net", "jql": null },
+  "ado": {
+    "org": "yourorg", "projects": ["Fleet"], "repos": [], "auth": "az",
+    "excludePipelines": ["-Android", "-iOS"],      // substring filters for noisy farms
+    "groupReviewRepos": ["Web.App"]                 // repos where SG_* groups mean "maybe me"
+  },
+  "jira": {
+    "site": "yourorg.atlassian.net",
+    "jql": null,                                     // default: your open work (+ recent done)
+    "teamJql": "project = FLT AND sprint in openSprints()",  // extra fetch for the team view
+    "includeStatuses": ["Pending Deployment"]        // done-category states to keep on the board
+  },
   "bitbucket": { "workspace": "yourws", "repos": ["mobile-app"] }
 }
 ```
