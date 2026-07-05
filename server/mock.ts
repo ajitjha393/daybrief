@@ -96,7 +96,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
       },
       {
         source: 'ado', id: 4828, key: 'fleet-api!4828',
-        title: 'Add idempotency keys to order-import endpoint',
+        title: '[FLT-788] Add idempotency keys to order-import endpoint',
         url: 'https://dev.azure.com/acme/Fleet/_git/fleet-api/pullrequest/4828',
         repo: 'fleet-api',
         author: { name: 'Alice Chen', id: 'alice@acme.dev' },
@@ -134,7 +134,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
     mergedPulls: [
       {
         source: 'ado', id: 4801, key: 'fleet-web!4801',
-        title: 'Stop-card ETA recalculation on drag',
+        title: '[FLT-795] Stop-card ETA recalculation on drag',
         url: 'https://dev.azure.com/acme/Fleet/_git/fleet-web/pullrequest/4801',
         repo: 'fleet-web',
         author: { name: 'Alice Chen', id: 'alice@acme.dev' },
