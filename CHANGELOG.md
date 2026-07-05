@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 — 2026-07-05
+
+### Added
+- **Release radar** — release/* branches in play (open PRs, merges this
+  week, branch pipeline status) and keyed mainline merges that appear in
+  no release PR. Ticket-key correlation from PR titles; unkeyed changes
+  are never guessed at; fully quiet for trunk-only teams
+
 ## 0.4.0 — 2026-07-05
 
 ### Added
