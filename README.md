@@ -83,6 +83,20 @@ morning question spans all three.
 | Jira | `JIRA_EMAIL` + `JIRA_API_TOKEN` (an [API token](https://id.atlassian.com/manage-profile/security/api-tokens), never your password) | your JQL or a sane personal default; blocked = blocked-ish status or `blocked` label |
 | Bitbucket | `BITBUCKET_USER` + `BITBUCKET_APP_PASSWORD` | open PRs (reviewer detail lands in v0.2) |
 
+**Prefer a file over env vars?** Drop a `daybrief.secrets.json` next to the
+config (the starter `.gitignore` already excludes it — never commit it):
+
+```json
+{
+  "jira": { "email": "alice@co.com", "token": "your-atlassian-api-token" },
+  "ado": { "pat": "only-if-not-using-az" },
+  "bitbucket": { "user": "alice-dev", "appPassword": "…" }
+}
+```
+
+Env vars still win when both are present, so CI and power-user setups keep
+working unchanged.
+
 Every external payload is validated with [zod](https://zod.dev) at the
 boundary; the codebase is strict TypeScript with `no-explicit-any` enforced as
 a lint **error** — fields a source doesn't expose stay `null` and render as
