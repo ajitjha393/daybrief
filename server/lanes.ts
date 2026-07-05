@@ -1,5 +1,6 @@
 import type { Issue, Lanes, OwnPull, Person, Pull, PullSource, ProviderResult, Run, RunStatus } from '../shared/types.js'
-import { isPerson } from '../shared/normalize.js'
+import { DAY_MS, isPerson } from '../shared/normalize.js'
+import { isBotPull } from '../shared/bots.js'
 import type { Config } from './config.js'
 
 // The product's actual logic: turning merged provider results into the four
@@ -14,12 +15,21 @@ const byOldestFirst = (a: Pull, b: Pull): number => (a.createdAt ?? Number.MAX_S
 
 const RUN_ORDER: Record<RunStatus, number> = { failed: 0, running: 1, ok: 2, none: 3 }
 
-export function computeLanes(config: Config, results: ProviderResult[]): Lanes {
-  const pulls = results.flatMap((r) => r.pulls)
+export function computeLanes(config: Config, results: ProviderResult[], now: number = Date.now()): Lanes {
+  const allOpen = results.flatMap((r) => r.pulls)
+  const merged = results.flatMap((r) => r.mergedPulls)
   const runs = results.flatMap((r) => r.runs)
   const issues = results.flatMap((r) => r.issues)
 
   const mine = (p: Pull): boolean => matchesMe(config, p.author, p.source)
+
+  // Automation PRs get their own corral — they never queue as your reviews.
+  const botPulls = allOpen.filter(isBotPull).sort(byOldestFirst)
+  const pulls = allOpen.filter((p) => !isBotPull(p))
+
+  const myMerged = merged
+    .filter((p) => mine(p) && p.closedAt !== null && now - (p.closedAt ?? 0) <= 7 * DAY_MS)
+    .sort((a, b) => (b.closedAt ?? 0) - (a.closedAt ?? 0))
 
   // Repos I'm demonstrably active in: authoring or directly reviewing there
   // right now, plus any the config names. When a PR's only pending reviewer
@@ -69,5 +79,5 @@ export function computeLanes(config: Config, results: ProviderResult[]): Lanes {
     (a, b) => RUN_ORDER[a.status] - RUN_ORDER[b.status] || (b.finishedAt ?? 0) - (a.finishedAt ?? 0),
   )
 
-  return { needsMyReview, myPulls, myIssues, runs: sortedRuns }
+  return { needsMyReview, myPulls, myIssues, myMerged, botPulls, runs: sortedRuns }
 }
