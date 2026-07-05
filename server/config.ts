@@ -49,10 +49,18 @@ const PersonSchema = z.object({
   bitbucket: z.string().nullable().default(null),
 })
 
+const DigestSchema = z.object({
+  /** Local time HH:MM to post the morning digest. */
+  at: z.string().regex(/^\d{1,2}:\d{2}$/).default('09:00'),
+  /** Env var holding the Teams/Slack incoming-webhook URL. */
+  webhookEnv: z.string().default('DAYBRIEF_WEBHOOK_URL'),
+})
+
 export const ConfigSchema = z
   .object({
     me: MeSchema,
     pollSeconds: z.number().int().min(15).max(3600).default(90),
+    digest: DigestSchema.nullable().default(null),
     ado: AdoSchema.nullable().default(null),
     jira: JiraSchema.nullable().default(null),
     bitbucket: BitbucketSchema.nullable().default(null),
