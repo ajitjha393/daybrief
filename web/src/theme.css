@@ -55,7 +55,7 @@ body {
 a { color: inherit; text-decoration: none; }
 a:hover { text-decoration: underline; text-underline-offset: 2px; }
 
-.wrap { max-width: 1280px; margin: 0 auto; padding: 24px 24px 56px; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 24px 24px 56px; }
 
 header.top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
 .logo { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
@@ -74,7 +74,9 @@ header.top { display: flex; align-items: baseline; justify-content: space-betwee
 .dot.off { background: var(--muted); }
 
 .lanes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
-@media (max-width: 1000px) { .lanes { grid-template-columns: 1fr; } }
+.lanes.team { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.lane.full { grid-column: 1 / -1; }
+@media (max-width: 1000px) { .lanes, .lanes.team { grid-template-columns: 1fr; } }
 
 .lane { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; min-width: 0; }
 .lane > h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
@@ -85,7 +87,8 @@ header.top { display: flex; align-items: baseline; justify-content: space-betwee
 .lane > h2 .count.hot { background: var(--accent); color: #fff; }
 .lane .empty { color: var(--muted); font-size: 12.5px; padding: 10px 2px 4px; }
 
-.card { border: 1px solid var(--grid); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+.card { border: 1px solid var(--grid); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; transition: border-color 120ms ease; }
+.card:hover { border-color: var(--baseline); }
 .card:last-child { margin-bottom: 0; }
 .card .title { font-size: 13px; font-weight: 550; line-height: 1.35; }
 .card .sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; color: var(--muted); font-size: 11.5px; }

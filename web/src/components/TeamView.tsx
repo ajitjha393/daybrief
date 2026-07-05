@@ -10,7 +10,7 @@ import { ProgressiveList } from './ProgressiveList'
 export function TeamView({ team }: { team: TeamState }) {
   return (
     <>
-      <main className="lanes">
+      <main className="lanes team">
         <Lane
           title="Open PRs, oldest first"
           count={team.stalePulls.length}
@@ -60,6 +60,7 @@ export function TeamView({ team }: { team: TeamState }) {
 
         <Lane
           title="Blocked, team-wide"
+          full
           count={team.blockedIssues.length}
           emptyText="Nothing is blocked. Suspiciously smooth."
         >

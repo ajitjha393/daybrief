@@ -6,13 +6,15 @@ interface LaneProps {
   sub?: string
   count: number
   hot?: boolean
+  /** Span the full grid width. */
+  full?: boolean
   emptyText: string
   children: ReactNode
 }
 
-export function Lane({ title, sub, count, hot = false, emptyText, children }: LaneProps) {
+export function Lane({ title, sub, count, hot = false, full = false, emptyText, children }: LaneProps) {
   return (
-    <section className="lane">
+    <section className={full ? 'lane full' : 'lane'}>
       <h2>
         {title}
         {sub !== undefined && <span className="lane-sub">{sub}</span>}
