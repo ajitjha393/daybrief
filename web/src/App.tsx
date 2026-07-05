@@ -117,6 +117,21 @@ export function App() {
             )}
           </section>
 
+          {lanes.botPulls.length > 0 && (
+            <section className="runs">
+              <h2>
+                Automated PRs
+                <span className="lane-sub">Snyk, Dependabot & friends — kept out of your review queue</span>
+                <span className="count">{lanes.botPulls.length}</span>
+              </h2>
+              <ProgressiveList
+                items={lanes.botPulls}
+                step={6}
+                render={(pull) => <PullCard key={`${pull.source}-${pull.key}`} pull={pull} />}
+              />
+            </section>
+          )}
+
           {brief.length > 0 && (
             <section className="runs brief">
               <h2>
