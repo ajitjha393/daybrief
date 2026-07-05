@@ -19,7 +19,7 @@ describe('group reviewers', () => {
     const results = mockResults(NOW)
     const stranger = results.pulls.find((p) => p.key === 'fleet-api!4840')
     if (stranger === undefined) throw new Error('fixture missing')
-    const lonely = { pulls: [{ ...stranger, repo: 'somebody-elses-service', key: 'somebody-elses-service!1' }], runs: [], issues: [] }
+    const lonely = { pulls: [{ ...stranger, repo: 'somebody-elses-service', key: 'somebody-elses-service!1' }], mergedPulls: [], runs: [], issues: [] }
     const lanes = computeLanes(mockConfig, [lonely])
     expect(lanes.needsMyReview).toEqual([])
   })
@@ -28,7 +28,7 @@ describe('group reviewers', () => {
     const results = mockResults(NOW)
     const stranger = results.pulls.find((p) => p.key === 'fleet-api!4840')
     if (stranger === undefined) throw new Error('fixture missing')
-    const lonely = { pulls: [{ ...stranger, repo: 'edge-service', key: 'edge-service!1' }], runs: [], issues: [] }
+    const lonely = { pulls: [{ ...stranger, repo: 'edge-service', key: 'edge-service!1' }], mergedPulls: [], runs: [], issues: [] }
     const cfg = { ...mockConfig, ado: { ...(mockConfig.ado ?? { org: 'x', projects: ['y'], repos: [], excludePipelines: [], auth: 'az' as const }), groupReviewRepos: ['edge-service'] } }
     const lanes = computeLanes(cfg, [lonely])
     expect(lanes.needsMyReview.map((p) => p.via)).toEqual(['SG_Developers'])
@@ -62,10 +62,11 @@ describe('standup brief', () => {
   it('summarizes work, PRs and owed reviews, blockers only when real', () => {
     const lanes = computeLanes(mockConfig, [mockResults(NOW)])
     const brief = buildBrief(lanes)
-    expect(brief).toContain('Working on:')
+    expect(brief).toContain('Doing:')
+    expect(brief).toContain('Done: fleet-web!4801')
     expect(brief).toContain('ready to merge')
-    expect(brief).toMatch(/Owe \d+ reviews/)
-    expect(brief).toContain('Blockers: FLT-812 is blocked')
+    expect(brief).toMatch(/Reviews owed: \d+/)
+    expect(brief).toContain('Blockers: FLT-812 blocked')
   })
 
   it('no blockers line when nothing is blocked', () => {
@@ -73,5 +74,32 @@ describe('standup brief', () => {
     results.issues = results.issues.filter((i) => !i.blocked)
     const brief = buildBrief(computeLanes(mockConfig, [results]))
     expect(brief).not.toContain('Blockers:')
+  })
+})
+
+describe('bots and shipped', () => {
+  it('bot PRs are corralled, never in review lanes or the team wall', () => {
+    const lanes = computeLanes(mockConfig, [mockResults(NOW)])
+    expect(lanes.botPulls.map((p) => p.key)).toEqual(['fleet-web!4842'])
+    expect(lanes.needsMyReview.some((p) => p.key === 'fleet-web!4842')).toBe(false)
+    const team = computeTeam(mockConfig, [mockResults(NOW)])
+    expect(team.stalePulls.some((p) => p.key === 'fleet-web!4842')).toBe(false)
+  })
+
+  it('myMerged lists my PRs merged in the last 7 days, newest first', () => {
+    const lanes = computeLanes(mockConfig, [mockResults(NOW)], NOW)
+    expect(lanes.myMerged.map((p) => p.key)).toEqual(['fleet-web!4801'])
+  })
+
+  it('roster dedupes display-name and account-name variants of one human', () => {
+    const results = mockResults(NOW)
+    const clone = JSON.parse(JSON.stringify(results.pulls[0])) as typeof results.pulls[0]
+    clone.id = 9999; clone.key = 'fleet-web!9999'
+    clone.author = { name: 'ben.okafor', id: 'ben@acme.dev' }
+    const cfg = { ...mockConfig, people: [] }
+    const team = computeTeam(cfg, [{ ...results, pulls: [...results.pulls, clone] }])
+    const bens = team.people.filter((p) => p.name.toLowerCase().includes('okafor') || p.name.toLowerCase().includes('ben'))
+    expect(bens.length).toBe(1)
+    expect(bens[0]?.openPulls).toBe(3)
   })
 })

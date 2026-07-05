@@ -63,7 +63,7 @@ describe('computeLanes', () => {
       statusCategory: 'done' as const, assignee: 'alice@acme.dev', assigneeName: 'Alice Chen',
       priority: null, url: 'u', updatedAt: NOW, blocked: false,
     }
-    const base = { pulls: [], runs: [], issues: [issue] }
+    const base = { pulls: [], mergedPulls: [], runs: [], issues: [issue] }
     const without = computeLanes(mockConfig, [base])
     expect(without.myIssues).toEqual([])
     const cfg = {
@@ -78,12 +78,12 @@ describe('computeLanes', () => {
     const pull: Pull = {
       source: 'ado', id: 1, key: 'r!1', title: 't', url: 'u', repo: 'r',
       author: { name: 'Ben Okafor', id: 'ben@acme.dev' },
-      createdAt: NOW, updatedAt: null, isDraft: false, mergeBlocked: false, targetBranch: null,
+      createdAt: NOW, updatedAt: null, closedAt: null, isDraft: false, mergeBlocked: false, targetBranch: null,
       groupReviewers: [],
       reviewers: [{ name: 'Alice Chen', id: 'alice@acme.dev', vote: 'approved', required: true }],
       ci: 'none',
     }
-    const out = computeLanes(mockConfig, [{ pulls: [pull], runs: [], issues: [] }])
+    const out = computeLanes(mockConfig, [{ pulls: [pull], mergedPulls: [], runs: [], issues: [] }])
     expect(out.needsMyReview).toEqual([])
   })
 })
