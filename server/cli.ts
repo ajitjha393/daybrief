@@ -1,0 +1,97 @@
+import { copyFile, access } from 'node:fs/promises'
+import { execFile } from 'node:child_process'
+import { fileURLToPath } from 'node:url'
+import { loadConfig } from './config.js'
+import { providers } from './providers/index.js'
+import { mockConfig, mockProvider } from './mock.js'
+import { Poller } from './poller.js'
+import { startHttp } from './http.js'
+
+const args = process.argv.slice(2)
+const flag = (name: string): boolean => args.includes(`--${name}`)
+const opt = (name: string, fallback: string): string => {
+  const i = args.indexOf(`--${name}`)
+  const value = i >= 0 ? args[i + 1] : undefined
+  return value !== undefined && !value.startsWith('--') ? value : fallback
+}
+const log = (msg: string): void => console.error(`\x1b[2m◆\x1b[0m ${msg}`)
+
+if (flag('help') || flag('h')) {
+  console.log(`daybrief — your day, briefed. Read-only morning dashboard for ADO + Jira + Bitbucket.
+
+Usage:
+  daybrief init             write a starter daybrief.json next to you
+  daybrief [options]        start the dashboard
+
+Options:
+  --config <path>   config file (default: ./daybrief.json)
+  --port <n>        preferred port (default: 4400)
+  --mock            demo data, zero credentials — try the UI instantly
+  --no-open         don't auto-open the browser
+
+Secrets come from env vars named in the config; nothing is ever written back
+to ADO/Jira/Bitbucket — daybrief is read-only by design.`)
+  process.exit(0)
+}
+
+if (args[0] === 'init') {
+  await runInit()
+} else {
+  await runServe()
+}
+
+async function runInit(): Promise<void> {
+  const target = 'daybrief.json'
+  try {
+    await access(target)
+    console.error(`${target} already exists — not touching it`)
+    process.exit(1)
+  } catch {
+    // good: it doesn't exist yet
+  }
+  const example = fileURLToPath(new URL('../../daybrief.example.json', import.meta.url))
+  await copyFile(example, target)
+  console.log(`wrote ${target} — fill in your org, projects and identities, then run \`daybrief\``)
+}
+
+async function runServe(): Promise<void> {
+  const mock = flag('mock')
+  let config = mockConfig
+  if (!mock) {
+    const loaded = await loadConfig(opt('config', 'daybrief.json'))
+    if (!loaded.ok) {
+      console.error(loaded.error)
+      process.exit(1)
+    }
+    config = loaded.config
+  }
+
+  console.error(`\x1b[1m◆ daybrief\x1b[0m${mock ? ' — demo data' : ''}`)
+  const poller = new Poller({
+    config,
+    providers: mock ? [mockProvider] : providers,
+    intervalMs: config.pollSeconds * 1000,
+  })
+
+  const first = await poller.refresh()
+  for (const p of first.providers) {
+    log(p.ok ? `${p.label}: ok (${p.tookMs}ms)` : `${p.label}: ${p.error ?? 'failed'}`)
+  }
+  const { needsMyReview, myPulls, myIssues, runs } = first.lanes
+  log(`${needsMyReview.length} need your review · ${myPulls.length} of yours in flight · ${myIssues.length} tickets · ${runs.filter((r) => r.status === 'failed').length} red pipelines`)
+
+  poller.start()
+  const { url } = await startHttp(poller, Number(opt('port', '4400')))
+  log(`dashboard → \x1b[1m${url}\x1b[0m  (ctrl-c to stop)`)
+  if (!flag('no-open')) openBrowser(url)
+}
+
+function openBrowser(url: string): void {
+  const [cmd, cmdArgs] =
+    process.platform === 'darwin'
+      ? ['open', [url]]
+      : process.platform === 'win32'
+        ? ['cmd', ['/c', 'start', url]]
+        : ['xdg-open', [url]]
+  execFile(cmd, cmdArgs, () => undefined)
+}
