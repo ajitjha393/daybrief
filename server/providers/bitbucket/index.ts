@@ -6,7 +6,7 @@ export const bitbucket: Provider = {
   label: 'Bitbucket',
   enabled: (config) => config.bitbucket !== null,
   fetch: async (config) => {
-    if (config.bitbucket === null) return { pulls: [], runs: [], issues: [] }
-    return { pulls: await fetchPulls(config.bitbucket), runs: [], issues: [] }
+    if (config.bitbucket === null) return { pulls: [], mergedPulls: [], runs: [], issues: [] }
+    return { pulls: await fetchPulls(config.bitbucket), mergedPulls: [], runs: [], issues: [] }
   },
 }

@@ -6,12 +6,12 @@ export const jira: Provider = {
   label: 'Jira',
   enabled: (config) => config.jira !== null,
   fetch: async (config) => {
-    if (config.jira === null) return { pulls: [], runs: [], issues: [] }
+    if (config.jira === null) return { pulls: [], mergedPulls: [], runs: [], issues: [] }
     const mine = await fetchIssues(config.jira)
-    if (config.jira.teamJql === null) return { pulls: [], runs: [], issues: mine }
+    if (config.jira.teamJql === null) return { pulls: [], mergedPulls: [], runs: [], issues: mine }
     // Team query merges in; dedupe by key with the personal fetch winning.
     const team = await fetchIssues({ ...config.jira, jql: config.jira.teamJql })
     const seen = new Set(mine.map((i) => i.key))
-    return { pulls: [], runs: [], issues: [...mine, ...team.filter((i) => !seen.has(i.key))] }
+    return { pulls: [], mergedPulls: [], runs: [], issues: [...mine, ...team.filter((i) => !seen.has(i.key))] }
   },
 }
