@@ -1,0 +1,113 @@
+# ◆ daybrief
+
+[![ci](https://github.com/ajitjha393/daybrief/actions/workflows/ci.yml/badge.svg)](https://github.com/ajitjha393/daybrief/actions/workflows/ci.yml)
+
+**Your day, briefed.** A read-only morning dashboard for teams living on
+**Azure DevOps + Jira + Bitbucket** — the stack every enterprise team runs and
+every dev tool ignores.
+
+One screen answers the question you currently assemble by hand across four
+tabs: **what needs me today?**
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
+  <img alt="daybrief — needs your review, your PRs in flight, your tickets, pipelines" src="docs/screenshot-light.png">
+</picture>
+
+## Try it in 10 seconds (no credentials)
+
+```sh
+npx daybrief --mock
+```
+
+That's the real UI on demo data. When it looks like something your mornings
+want, wire it to your org:
+
+```sh
+npx daybrief init     # writes daybrief.json — fill in org, projects, who you are
+npx daybrief          # polls, serves, opens your brief
+```
+
+## What's on the screen
+
+- **Needs your review** — PRs where your vote is still missing, *oldest first*,
+  with age escalating from quiet to loud. Review debt becomes visible without
+  anyone nagging anyone.
+- **Your PRs in flight** — who each one is waiting on, approvals so far,
+  merge-conflict flags, and a green *ready to merge* when it's truly unblocked.
+- **Your tickets** — open Jira work, blocked items floated to the top.
+- **Pipelines** — latest run per pipeline, failures first, "1 failure needs
+  eyes" instead of a wall of green you have to scan.
+
+Updates stream in live (SSE); a provider having a bad moment shows its error
+in the header while its last good data stays on the board.
+
+## The stack nobody builds for
+
+GitHub teams get `gh dash`, Graphite, and a hundred pretty radiators. Teams on
+Azure DevOps and Jira get… in-product dashboards from 2014, none of which can
+see across the ADO↔Jira seam. daybrief exists for that seam: code review state
+and build state live in ADO/Bitbucket, work state lives in Jira, and your
+morning question spans all three.
+
+## Design promises
+
+1. **Read-only, by construction.** daybrief holds no write scopes and sends
+   no mutations — it cannot approve, merge, transition, or comment. The worst
+   it can do is show you the truth.
+2. **No metrics theater.** No velocity, no leaderboards, no per-person
+   charts. daybrief shows *state that needs action*, not performance. That
+   line is what keeps a team radiator trusted instead of resented, and it's
+   permanent.
+3. **Your credentials stay yours.** Secrets come from env vars referenced by
+   name in the config; the dashboard is served on localhost; state lives in
+   process memory. Nothing is persisted, proxied, or phoned home.
+
+## Configuration
+
+`daybrief.json` (structure only — committable):
+
+```jsonc
+{
+  "me": { "name": "Alice", "ado": "alice@co.com", "jira": "alice@co.com", "bitbucket": "alice-dev" },
+  "pollSeconds": 90,
+  "ado": { "org": "yourorg", "projects": ["Fleet"], "repos": [], "auth": "az" },
+  "jira": { "site": "yourorg.atlassian.net", "jql": null },
+  "bitbucket": { "workspace": "yourws", "repos": ["mobile-app"] }
+}
+```
+
+| Provider | Auth | Notes |
+|---|---|---|
+| Azure DevOps | `"auth": "az"` → your existing `az login` (zero setup) · `"auth": "pat"` → `ADO_PAT` | PRs + reviewer votes + latest run per pipeline |
+| Jira | `JIRA_EMAIL` + `JIRA_API_TOKEN` (an [API token](https://id.atlassian.com/manage-profile/security/api-tokens), never your password) | your JQL or a sane personal default; blocked = blocked-ish status or `blocked` label |
+| Bitbucket | `BITBUCKET_USER` + `BITBUCKET_APP_PASSWORD` | open PRs (reviewer detail lands in v0.2) |
+
+Every external payload is validated with [zod](https://zod.dev) at the
+boundary; the codebase is strict TypeScript with `no-explicit-any` enforced as
+a lint **error** — fields a source doesn't expose stay `null` and render as
+unknown, never guessed.
+
+## Roadmap
+
+- **v0.2** — team radiator view (`/team`: stale-PR wall, sprint pulse per person) · Bitbucket reviewers + pipelines · ADO PR-level policy/CI status
+- **v0.3** — morning digest posted to a Teams/Slack webhook — the brief for people who won't open a dashboard
+- **later** — GitHub/GitLab providers · release-branch radar
+
+## Development
+
+```sh
+git clone https://github.com/ajitjha393/daybrief && cd daybrief
+npm ci
+npm run dev        # compiles the server, boots on demo data
+npm run dev:web    # vite dev server with /api proxied
+npm test           # vitest
+```
+
+Server: Node ≥20, strict TS compiled to `dist/`, zod as the only runtime
+dependency. Web: React 19 + Vite, prebuilt into the package so `npx daybrief`
+installs one dependency and no toolchain.
+
+## License
+
+MIT
