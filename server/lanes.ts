@@ -21,10 +21,27 @@ export function computeLanes(config: Config, results: ProviderResult[]): Lanes {
 
   const mine = (p: Pull): boolean => matchesMe(config, p.author, p.source)
 
+  // Repos I'm demonstrably active in: authoring or directly reviewing there
+  // right now, plus any the config names. When a PR's only pending reviewer
+  // is a GROUP (ADO's SG_* containers), membership isn't queryable without
+  // Graph API scopes — activity in that repo is the honest proxy for "this
+  // probably includes me".
+  const activeRepos = new Set<string>(config.ado?.groupReviewRepos ?? [])
+  for (const p of pulls) {
+    if (mine(p) || p.reviewers.some((r) => matchesMe(config, r, p.source))) activeRepos.add(p.repo)
+  }
+
   // Oldest first — age is the pressure that makes review debt visible.
   const needsMyReview = pulls
     .filter((p) => !p.isDraft && !mine(p))
-    .filter((p) => p.reviewers.some((r) => matchesMe(config, r, p.source) && r.vote === 'none'))
+    .map((p): { p: Pull; via: string | null } | null => {
+      if (p.reviewers.some((r) => matchesMe(config, r, p.source) && r.vote === 'none')) return { p, via: null }
+      const group = p.groupReviewers.find((g) => g.vote === 'none')
+      if (group !== undefined && activeRepos.has(p.repo)) return { p, via: group.name }
+      return null
+    })
+    .filter((x): x is { p: Pull; via: string | null } => x !== null)
+    .map(({ p, via }) => ({ ...p, via }))
     .sort(byOldestFirst)
 
   const myPulls: OwnPull[] = pulls

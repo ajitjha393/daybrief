@@ -17,12 +17,18 @@ const AdoSchema = z.object({
   org: z.string().min(1),
   projects: z.array(z.string().min(1)).min(1),
   repos: z.array(z.string()).default([]),
+  /** Case-insensitive substrings — matching pipeline names are dropped entirely. */
+  excludePipelines: z.array(z.string()).default([]),
+  /** Repos where group reviewers (SG_*) should count as possibly-you, beyond auto-detected activity. */
+  groupReviewRepos: z.array(z.string()).default([]),
   auth: z.enum(['az', 'pat']).default('az'),
 })
 
 const JiraSchema = z.object({
   site: z.string().min(1),
   jql: z.string().nullable().default(null),
+  /** Extra JQL fetched for the team view (e.g. the sprint); merged and deduped. */
+  teamJql: z.string().nullable().default(null),
   /** Done-category statuses to keep on the board anyway (e.g. "Pending Deployment"). */
   includeStatuses: z.array(z.string()).default([]),
   emailEnv: z.string().default('JIRA_EMAIL'),
