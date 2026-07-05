@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      - name: smoke — mock server answers with computed lanes
+        run: |
+          node bin/daybrief.js --mock --no-open --port 4455 &
+          sleep 2
+          curl -sf http://localhost:4455/api/state | node -e "
+            let s=''; process.stdin.on('data',(c)=>s+=c).on('end',()=>{
+              const d=JSON.parse(s);
+              if (d.lanes.needsMyReview.length !== 3) { console.error('unexpected lanes'); process.exit(1); }
+              console.log('smoke ok:', d.lanes.needsMyReview.length, 'reviews waiting');
+            })"
