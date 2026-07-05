@@ -1,17 +1,9 @@
 import type { z } from 'zod'
 import type { BitbucketConfig } from '../../config.js'
-
-function credentials(cfg: BitbucketConfig): { user: string; token: string } {
-  const user = process.env[cfg.userEnv]
-  const token = process.env[cfg.tokenEnv]
-  if (!user || !token) {
-    throw new Error(`bitbucket needs ${cfg.userEnv} and ${cfg.tokenEnv} env vars (an app password, not your account password)`)
-  }
-  return { user, token }
-}
+import { bitbucketCredentials } from '../../secrets.js'
 
 export async function bbGet<T extends z.ZodType>(cfg: BitbucketConfig, path: string, schema: T): Promise<z.infer<T>> {
-  const { user, token } = credentials(cfg)
+  const { user, token } = bitbucketCredentials(cfg)
   const res = await fetch(`https://api.bitbucket.org/2.0${path}`, {
     headers: {
       Authorization: 'Basic ' + Buffer.from(`${user}:${token}`).toString('base64'),

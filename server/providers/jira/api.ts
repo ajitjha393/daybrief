@@ -1,17 +1,9 @@
 import type { z } from 'zod'
 import type { JiraConfig } from '../../config.js'
-
-function credentials(cfg: JiraConfig): { email: string; token: string } {
-  const email = process.env[cfg.emailEnv]
-  const token = process.env[cfg.tokenEnv]
-  if (!email || !token) {
-    throw new Error(`jira needs ${cfg.emailEnv} and ${cfg.tokenEnv} env vars (an Atlassian API token, not your password)`)
-  }
-  return { email, token }
-}
+import { jiraCredentials } from '../../secrets.js'
 
 export async function jiraGet<T extends z.ZodType>(cfg: JiraConfig, path: string, schema: T): Promise<z.infer<T>> {
-  const { email, token } = credentials(cfg)
+  const { email, token } = jiraCredentials(cfg)
   const res = await fetch(`https://${cfg.site}${path}`, {
     headers: {
       Authorization: 'Basic ' + Buffer.from(`${email}:${token}`).toString('base64'),

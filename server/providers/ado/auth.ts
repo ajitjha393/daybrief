@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import type { AdoConfig } from '../../config.js'
+import { adoPat } from '../../secrets.js'
 
 const run = promisify(execFile)
 
@@ -27,8 +28,8 @@ export async function azToken(): Promise<string> {
 
 export async function authHeader(cfg: AdoConfig): Promise<Record<string, string>> {
   if (cfg.auth === 'pat') {
-    const pat = process.env['ADO_PAT']
-    if (!pat) throw new Error('ado.auth is "pat" but the ADO_PAT env var is not set')
+    const pat = adoPat()
+    if (pat === null) throw new Error('ado.auth is "pat" but neither the ADO_PAT env var nor daybrief.secrets.json provides one')
     return { Authorization: 'Basic ' + Buffer.from(':' + pat).toString('base64') }
   }
   try {
