@@ -5,4 +5,5 @@ web/dist/
 .env
 .env.*
 daybrief.json
+daybrief.secrets.json
 .DS_Store
