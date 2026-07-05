@@ -2,6 +2,8 @@ import type { ProviderResult, ProviderStatus, StateSnapshot } from '../shared/ty
 import type { Config } from './config.js'
 import type { Provider } from './providers/contract.js'
 import { computeLanes } from './lanes.js'
+import { computeTeam } from './teamlanes.js'
+import { buildBrief } from './brief.js'
 
 type Listener = (snapshot: StateSnapshot) => void
 
@@ -56,10 +58,13 @@ export class Poller {
       }),
     )
     const results = [...this.lastGood.values()]
+    const lanes = computeLanes(this.opts.config, results)
     this.snapshot = {
       generatedAt: Date.now(),
       me: { name: this.opts.config.me.name },
-      lanes: computeLanes(this.opts.config, results),
+      lanes,
+      team: computeTeam(this.opts.config, results),
+      brief: buildBrief(lanes),
       providers: [...this.statuses.values()],
     }
     for (const fn of this.listeners) fn(this.snapshot)
