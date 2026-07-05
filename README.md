@@ -1,4 +1,4 @@
-# ◆ daybrief
+# <img src="docs/icon.svg" width="30" align="top" alt=""> daybrief
 
 [![ci](https://github.com/ajitjha393/daybrief/actions/workflows/ci.yml/badge.svg)](https://github.com/ajitjha393/daybrief/actions/workflows/ci.yml)
 
