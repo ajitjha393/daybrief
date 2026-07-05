@@ -158,13 +158,35 @@ export function App() {
               </h2>
               <div className="rel-branches">
                 {release.branches.map((b) => (
-                  <div key={b.name} className="rel-branch">
-                    <strong>{b.name}</strong>
-                    <span className="rel-meta">
-                      {b.openPulls} open · {b.mergedRecently} merged 7d
-                    </span>
-                    {b.pipeline !== null && (
-                      <span className={`status ${b.pipeline.status}`}>● {b.pipeline.status}</span>
+                  <div key={`${b.repo}:${b.name}`} className="rel-branch">
+                    <div className="rel-top">
+                      <strong>{b.name}</strong>
+                      <span className="rel-repo">{b.repo}</span>
+                      {b.pipeline !== null && (
+                        <a
+                          className={`status ${b.pipeline.status}`}
+                          href={b.pipeline.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          ● {b.pipeline.status}
+                        </a>
+                      )}
+                    </div>
+                    <div className="rel-meta">
+                      {b.openPulls} open · {b.mergedRecently} merged this week
+                    </div>
+                    {b.open.length > 0 && (
+                      <ul className="rel-open">
+                        {b.open.map((o) => (
+                          <li key={o.key}>
+                            <a href={o.url} target="_blank" rel="noreferrer">
+                              {o.ticket !== null ? `${o.ticket} · ` : ''}
+                              {o.title}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
                     )}
                   </div>
                 ))}
