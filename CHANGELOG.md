@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.0 — 2026-07-05
+
+### Added
+- **Morning digest** — `daybrief digest` posts the team brief to a
+  Teams/Slack incoming webhook (`--dry-run` previews; the server also
+  schedules it daily at `digest.at`). Covers open-PR age, who reviews are
+  pending with, red pipelines, blocked work and the bot backlog
+- **ADO PR-level CI** — statuses per PR (newest slice), shown as badges
+  on cards: failed loud, running amber, ok quiet
+- **Bitbucket reviewers** — per-PR participant detail; approvals and
+  change-requests map to votes
+- **Production polish** — favicon, tab-title review count, skeleton
+  loading, sticky blurred header, focus-visible rings, reduced-motion
+
 ## 0.3.0 — 2026-07-05
 
 ### Added
