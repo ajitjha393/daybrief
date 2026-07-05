@@ -1,0 +1,33 @@
+{
+  "$comment": "Copy to daybrief.json (gitignored) and fill in. Secrets NEVER go here — they come from environment variables.",
+  "me": {
+    "name": "Alice",
+    "ado": "alice@company.com",
+    "jira": "alice@company.com",
+    "bitbucket": "alice-dev"
+  },
+  "pollSeconds": 90,
+  "ado": {
+    "org": "yourorg",
+    "projects": ["YourProject"],
+    "repos": ["Web.App", "Api.Core"],
+    "auth": "az",
+    "$auth": "auth: 'az' shells out to `az account get-access-token` (needs `az login`); auth: 'pat' reads the ADO_PAT env var"
+  },
+  "jira": {
+    "site": "yourorg.atlassian.net",
+    "jql": "sprint in openSprints() AND project = PROJ",
+    "emailEnv": "JIRA_EMAIL",
+    "tokenEnv": "JIRA_API_TOKEN"
+  },
+  "bitbucket": {
+    "workspace": "yourworkspace",
+    "repos": ["mobile-app"],
+    "userEnv": "BITBUCKET_USER",
+    "tokenEnv": "BITBUCKET_APP_PASSWORD"
+  },
+  "people": [
+    { "name": "Alice", "ado": "alice@company.com", "jira": "alice@company.com" },
+    { "name": "Bob", "ado": "bob@company.com", "jira": "bob@company.com" }
+  ]
+}
