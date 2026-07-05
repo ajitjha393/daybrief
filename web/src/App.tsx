@@ -9,10 +9,12 @@ import { TeamView } from './components/TeamView'
 import { ProgressiveList } from './components/ProgressiveList'
 import { plural } from './format'
 
-type View = 'me' | 'team'
+// One page shows everything — you, then the team. '#team' is radiator mode:
+// team-only, for the wall screen.
+type View = 'all' | 'radiator'
 
 function currentView(): View {
-  return location.hash === '#team' ? 'team' : 'me'
+  return location.hash === '#team' ? 'radiator' : 'all'
 }
 
 export function App() {
@@ -65,7 +67,7 @@ export function App() {
     <div className="wrap">
       <Header me={me.name} generatedAt={generatedAt} connected={connected} providers={providers} view={view} />
 
-      {view === 'team' ? (
+      {view === 'radiator' ? (
         <TeamView team={team} />
       ) : (
         <>
@@ -147,6 +149,12 @@ export function App() {
               />
             </section>
           )}
+
+          <div className="section-head">
+            <h2>Team</h2>
+            <span className="lane-sub">everyone's state that needs action — counts, never rankings</span>
+          </div>
+          <TeamView team={team} />
 
           {brief.length > 0 && (
             <section className="runs brief">

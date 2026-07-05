@@ -7,7 +7,7 @@ interface HeaderProps {
   generatedAt: number
   connected: boolean
   providers: ProviderStatus[]
-  view: 'me' | 'team'
+  view: 'all' | 'radiator'
 }
 
 const THEME_LABEL: Record<Theme, string> = { system: '◐ auto', light: '☀ light', dark: '☾ dark' }
@@ -22,12 +22,13 @@ export function Header({ me, generatedAt, connected, providers, view }: HeaderPr
       </div>
       <div className="meta">
         <nav className="nav">
-          <a href="#" className={view === 'me' ? 'active' : undefined}>
-            me
-          </a>
-          <a href="#team" className={view === 'team' ? 'active' : undefined}>
-            team
-          </a>
+          {view === 'radiator' ? (
+            <a href="#">← my day</a>
+          ) : (
+            <a href="#team" title="team-only view for a wall screen">
+              radiator ⇱
+            </a>
+          )}
         </nav>
         {providers.map((p) => (
           <span key={p.id} className="provider" title={p.error ?? `${p.label}: ok`}>

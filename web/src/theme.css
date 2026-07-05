@@ -164,6 +164,8 @@ table.pulse .bad-cell { color: var(--bad); font-weight: 600; }
 .quiet-toggle:hover { color: var(--ink-2); }
 
 .lane-sub { color: var(--muted); font-weight: 400; font-size: 11px; margin-left: 2px; }
+.section-head { display: flex; align-items: baseline; gap: 10px; margin: 26px 2px 12px; padding-top: 18px; border-top: 1px solid var(--grid); }
+.section-head h2 { font-size: 14px; font-weight: 650; letter-spacing: -0.01em; }
 .list-sentinel { color: var(--muted); font-size: 11.5px; padding: 6px 2px; }
 
 .brief pre {
