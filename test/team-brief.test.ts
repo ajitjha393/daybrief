@@ -80,7 +80,7 @@ describe('standup brief', () => {
 describe('bots and shipped', () => {
   it('bot PRs are corralled, never in review lanes or the team wall', () => {
     const lanes = computeLanes(mockConfig, [mockResults(NOW)])
-    expect(lanes.botPulls.map((p) => p.key)).toEqual(['fleet-web!4842'])
+    expect(lanes.botPulls.map((p) => p.key)).toEqual(['fleet-web!4842', 'fleet-web!4844'])
     expect(lanes.needsMyReview.some((p) => p.key === 'fleet-web!4842')).toBe(false)
     const team = computeTeam(mockConfig, [mockResults(NOW)])
     expect(team.stalePulls.some((p) => p.key === 'fleet-web!4842')).toBe(false)

@@ -8,14 +8,14 @@ describe('release radar', () => {
   const radar = computeRelease([mockResults(NOW)], NOW)
 
   it('finds release branches from open and merged PR targets, with their pipeline', () => {
-    expect(radar.branches.map((b) => [b.name, b.repo])).toEqual([['release/3.2', 'fleet-api']])
+    expect(radar.branches.map((b) => [b.name, b.repo])).toEqual([['release/3.2', 'fleet-api'], ['release/3.2', 'fleet-web']])
     expect(radar.branches[0]?.open.map((o) => o.ticket)).toEqual(['FLT-788'])
     expect(radar.branches[0]?.openPulls).toBe(1)
     expect(radar.branches[0]?.pipeline?.status).toBe('running')
   })
 
   it('flags keyed mainline merges that appear in no release PR', () => {
-    expect(radar.unreleased.map((u) => u.ticket)).toEqual(['FLT-795'])
+    expect(radar.unreleased.map((u) => u.ticket)).toEqual(['FLT-795', 'FLT-802'])
   })
 
   it('tickets covered by a release PR are not flagged; unkeyed merges are never guessed', () => {
