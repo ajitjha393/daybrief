@@ -26,9 +26,17 @@ export function PullCard({ pull }: { pull: Pull | ReviewPull }) {
         {via !== null && <span className="badge warn">via {via}</span>}
         {pull.isDraft && <span className="badge">draft</span>}
         {pull.mergeBlocked && <span className="badge bad">merge conflict</span>}
+        <CiBadge ci={pull.ci} />
       </div>
     </article>
   )
+}
+
+function CiBadge({ ci }: { ci: Pull['ci'] }) {
+  if (ci === 'failed') return <span className="badge bad">CI failed</span>
+  if (ci === 'running') return <span className="badge warn">CI running</span>
+  if (ci === 'ok') return <span className="badge good">CI ✓</span>
+  return null
 }
 
 export function OwnPullCard({ pull }: { pull: OwnPull }) {
@@ -48,6 +56,7 @@ export function OwnPullCard({ pull }: { pull: OwnPull }) {
         {pull.isDraft && <span className="badge">draft</span>}
         {pull.mergeBlocked && <span className="badge bad">merge conflict</span>}
         {ready && <span className="badge good">ready to merge</span>}
+        <CiBadge ci={pull.ci} />
       </div>
       {(pull.waitingOn.length > 0 || approved.length > 0) && (
         <div className="chips">
