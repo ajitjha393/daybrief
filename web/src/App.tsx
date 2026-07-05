@@ -27,15 +27,31 @@ export function App() {
     return () => removeEventListener('hashchange', onHash)
   }, [])
 
+  // The browser tab is a status light: pending reviews show in the title.
+  useEffect(() => {
+    const n = snapshot?.lanes.needsMyReview.length ?? 0
+    document.title = n > 0 ? `(${n}) daybrief` : 'daybrief'
+  }, [snapshot])
+
   if (snapshot === null) {
     return (
       <div className="wrap">
         <header className="top">
           <div className="logo">
             <span className="mark">◆</span> daybrief
+            <small>first poll running…</small>
           </div>
         </header>
-        <p style={{ color: 'var(--muted)' }}>first poll running…</p>
+        <main className="lanes" aria-hidden="true">
+          {[0, 1, 2].map((i) => (
+            <section key={i} className="lane">
+              <div className="skeleton skeleton-title" />
+              <div className="skeleton skeleton-card" />
+              <div className="skeleton skeleton-card" />
+              <div className="skeleton skeleton-card" style={{ opacity: 0.6 }} />
+            </section>
+          ))}
+        </main>
       </div>
     )
   }
