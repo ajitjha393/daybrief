@@ -13,6 +13,12 @@ import { ago, plural } from './format'
 // team-only, for the wall screen.
 type View = 'all' | 'radiator'
 
+/** "[FLT-788] Fix thing" → "Fix thing" when the ticket is shown separately. */
+function stripTicket(title: string, ticket: string | null): string {
+  if (ticket === null) return title
+  return title.replace(new RegExp(`^\\[?${ticket}\\]?[\\s:·-]*`), '') || title
+}
+
 function currentView(): View {
   return location.hash === '#team' ? 'radiator' : 'all'
 }
@@ -182,7 +188,7 @@ export function App() {
                           <li key={o.key}>
                             <a href={o.url} target="_blank" rel="noreferrer">
                               {o.ticket !== null ? `${o.ticket} · ` : ''}
-                              {o.title}
+                              {stripTicket(o.title, o.ticket)}
                             </a>
                           </li>
                         ))}
@@ -201,7 +207,7 @@ export function App() {
                       <div key={u.key} className="run">
                         <a className="pipeline" href={u.url} target="_blank" rel="noreferrer">
                           {u.ticket !== null ? `${u.ticket} — ` : ''}
-                          {u.title}
+                          {stripTicket(u.title, u.ticket)}
                         </a>
                         <span className="branch">→ {u.targetBranch}</span>
                         <span className="when">{ago(u.closedAt)}</span>

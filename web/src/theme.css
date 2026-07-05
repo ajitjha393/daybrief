@@ -133,7 +133,8 @@ header.top {
 .chip.rejected, .chip.waiting { color: var(--bad); }
 
 .runs { margin-top: 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; }
-.runs h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 10px; }
+.runs h2 { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.runs h2 .count { background: var(--chip); color: var(--ink-2); border-radius: 999px; font-size: 11px; font-weight: 600; padding: 1px 8px; }
 .run { display: flex; align-items: center; gap: 10px; padding: 7px 2px; border-bottom: 1px solid var(--grid); font-size: 12.5px; }
 .run:last-child { border-bottom: 0; }
 .run .status { display: inline-flex; align-items: center; gap: 6px; width: 86px; font-weight: 600; font-size: 11px; }
@@ -195,7 +196,7 @@ table.pulse .bad-cell { color: var(--bad); font-weight: 600; }
   background: var(--page); border: 1px solid var(--grid); border-radius: 10px; padding: 12px 14px;
 }
 .copy-btn {
-  float: right; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  margin-left: auto; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
   border-radius: 7px; font: 11px system-ui; padding: 3px 10px; cursor: pointer;
 }
 .copy-btn:hover { color: var(--ink); }
