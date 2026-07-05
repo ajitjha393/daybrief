@@ -1,6 +1,6 @@
 {
   "name": "daybrief",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Your day, briefed. A read-only morning dashboard for teams on Azure DevOps + Jira + Bitbucket: PRs waiting on you, your PRs stuck on others, pipeline health and sprint state — one screen, no metrics theater.",
   "type": "module",
   "bin": {
