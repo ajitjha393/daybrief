@@ -21,6 +21,7 @@ export function PullCard({ pull }: { pull: Pull }) {
         <span className="repo">{pull.key}</span>
         <span className={`age ${ageLevel(pull.createdAt)}`}>{ago(pull.createdAt)}</span>
         <span>{pull.author.name}</span>
+        {pull.targetBranch !== null && <span>→ {pull.targetBranch}</span>}
         {pull.isDraft && <span className="badge">draft</span>}
         {pull.mergeBlocked && <span className="badge bad">merge conflict</span>}
       </div>
@@ -41,6 +42,7 @@ export function OwnPullCard({ pull }: { pull: OwnPull }) {
       <div className="sub">
         <span className="repo">{pull.key}</span>
         <span className={`age ${ageLevel(pull.createdAt)}`}>{ago(pull.createdAt)}</span>
+        {pull.targetBranch !== null && <span>→ {pull.targetBranch}</span>}
         {pull.isDraft && <span className="badge">draft</span>}
         {pull.mergeBlocked && <span className="badge bad">merge conflict</span>}
         {ready && <span className="badge good">ready to merge</span>}
