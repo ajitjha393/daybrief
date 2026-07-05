@@ -8,7 +8,8 @@ describe('release radar', () => {
   const radar = computeRelease([mockResults(NOW)], NOW)
 
   it('finds release branches from open and merged PR targets, with their pipeline', () => {
-    expect(radar.branches.map((b) => b.name)).toEqual(['release/3.2'])
+    expect(radar.branches.map((b) => [b.name, b.repo])).toEqual([['release/3.2', 'fleet-api']])
+    expect(radar.branches[0]?.open.map((o) => o.ticket)).toEqual(['FLT-788'])
     expect(radar.branches[0]?.openPulls).toBe(1)
     expect(radar.branches[0]?.pipeline?.status).toBe('running')
   })

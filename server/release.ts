@@ -12,7 +12,11 @@ const KEY_RE = /\b([A-Z][A-Z0-9]{1,9}-\d+)\b/
 
 export interface ReleaseBranch {
   name: string
+  /** The repo this release train lives in — the same branch name can exist in many. */
+  repo: string
   openPulls: number
+  /** The open PRs themselves (newest first, capped) — clickable context. */
+  open: { key: string; title: string; url: string; ticket: string | null }[]
   mergedRecently: number
   pipeline: Run | null
 }
@@ -42,23 +46,36 @@ export function computeRelease(results: ProviderResult[], now: number = Date.now
   const week = now - 7 * 86_400_000
 
   const releaseTargets = new Map<string, ReleaseBranch>()
-  const touch = (name: string): ReleaseBranch => {
-    const entry = releaseTargets.get(name) ?? { name, openPulls: 0, mergedRecently: 0, pipeline: null }
-    releaseTargets.set(name, entry)
+  const touch = (name: string, repo: string): ReleaseBranch => {
+    const id = `${repo}\u0000${name}`
+    const entry = releaseTargets.get(id) ?? { name, repo, openPulls: 0, open: [], mergedRecently: 0, pipeline: null }
+    releaseTargets.set(id, entry)
     return entry
   }
   for (const p of open) {
-    if (p.targetBranch !== null && RELEASE_RE.test(p.targetBranch)) touch(p.targetBranch).openPulls += 1
+    if (p.targetBranch !== null && RELEASE_RE.test(p.targetBranch)) {
+      const entry = touch(p.targetBranch, p.repo)
+      entry.openPulls += 1
+      if (entry.open.length < 5) entry.open.push({ key: p.key, title: p.title, url: p.url, ticket: ticketOf(p) })
+    }
   }
   for (const p of merged) {
     if (p.targetBranch !== null && RELEASE_RE.test(p.targetBranch) && (p.closedAt ?? 0) >= week) {
-      touch(p.targetBranch).mergedRecently += 1
+      touch(p.targetBranch, p.repo).mergedRecently += 1
     }
   }
   for (const branch of releaseTargets.values()) {
-    branch.pipeline = runs.find((r) => r.branch.toLowerCase() === branch.name.toLowerCase()) ?? null
+    const onBranch = runs.filter((r) => r.branch.toLowerCase() === branch.name.toLowerCase())
+    // Prefer the pipeline that names the repo; fall back to any run on the branch.
+    branch.pipeline =
+      onBranch.find((r) => r.pipeline.toLowerCase().includes(branch.repo.toLowerCase())) ?? onBranch[0] ?? null
   }
-  const branches = [...releaseTargets.values()].sort((a, b) => b.name.localeCompare(a.name))
+  // Newest release first (numeric-aware so 7.12 outranks 7.5), then by repo.
+  const branches = [...releaseTargets.values()].sort(
+    (a, b) =>
+      b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' }) ||
+      a.repo.localeCompare(b.repo),
+  )
 
   // Tickets that reached any release/* PR (open or merged) are covered.
   const releasedTickets = new Set<string>()
