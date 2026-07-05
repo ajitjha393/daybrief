@@ -7,7 +7,7 @@ import { IssueCard } from './components/IssueCard'
 import { RunRow } from './components/RunRow'
 import { TeamView } from './components/TeamView'
 import { ProgressiveList } from './components/ProgressiveList'
-import { plural } from './format'
+import { ago, plural } from './format'
 
 // One page shows everything — you, then the team. '#team' is radiator mode:
 // team-only, for the wall screen.
@@ -58,7 +58,7 @@ export function App() {
     )
   }
 
-  const { lanes, team, me, providers, generatedAt, brief } = snapshot
+  const { lanes, team, me, providers, generatedAt, brief, release } = snapshot
   const failing = lanes.runs.filter((r) => r.status === 'failed')
   const quiet = lanes.runs.filter((r) => r.status === 'ok' || r.status === 'none')
   const loud = lanes.runs.filter((r) => r.status === 'failed' || r.status === 'running')
@@ -147,6 +147,47 @@ export function App() {
                 step={6}
                 render={(pull) => <PullCard key={`${pull.source}-${pull.key}`} pull={pull} />}
               />
+            </section>
+          )}
+
+          {release.branches.length > 0 && (
+            <section className="runs">
+              <h2>
+                Release radar
+                <span className="lane-sub">release branches in play · keyed changes on the mainline seen in no release PR</span>
+              </h2>
+              <div className="rel-branches">
+                {release.branches.map((b) => (
+                  <div key={b.name} className="rel-branch">
+                    <strong>{b.name}</strong>
+                    <span className="rel-meta">
+                      {b.openPulls} open · {b.mergedRecently} merged 7d
+                    </span>
+                    {b.pipeline !== null && (
+                      <span className={`status ${b.pipeline.status}`}>● {b.pipeline.status}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {release.unreleased.length > 0 && (
+                <>
+                  <h3 className="rel-sub">Merged to the mainline, in no release PR</h3>
+                  <ProgressiveList
+                    items={release.unreleased}
+                    step={6}
+                    render={(u) => (
+                      <div key={u.key} className="run">
+                        <a className="pipeline" href={u.url} target="_blank" rel="noreferrer">
+                          {u.ticket !== null ? `${u.ticket} — ` : ''}
+                          {u.title}
+                        </a>
+                        <span className="branch">→ {u.targetBranch}</span>
+                        <span className="when">{ago(u.closedAt)}</span>
+                      </div>
+                    )}
+                  />
+                </>
+              )}
             </section>
           )}
 
