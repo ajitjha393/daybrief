@@ -4,10 +4,14 @@ import type { JiraConfig } from '../../config.js'
 import { jiraGet } from './api.js'
 import { JiraSearchSchema, type JiraIssue } from './schemas.js'
 
-// Config-provided JQL wins; the default is a sane personal view. "Blocked"
+// Config-provided JQL wins; the default is a sane personal view. Recently
+// updated done-category issues are fetched too — some workflows park active
+// states there (e.g. "Pending Deployment") and includeStatuses can only
+// rescue what arrives; the lanes filter drops the truly-done ones. "Blocked"
 // is convention-driven in Jira — a blocked-ish status name or label is the
 // honest cross-team heuristic without site-specific custom fields.
-const DEFAULT_JQL = 'assignee = currentUser() AND statusCategory != Done ORDER BY updated DESC'
+const DEFAULT_JQL =
+  'assignee = currentUser() AND (statusCategory != Done OR updated >= -14d) ORDER BY updated DESC'
 
 const FIELDS = 'summary,status,assignee,priority,updated,labels'
 
