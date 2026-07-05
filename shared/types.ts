@@ -28,6 +28,8 @@ export interface Pull {
   author: Person
   createdAt: number | null
   updatedAt: number | null
+  /** When the PR completed/merged — null while open. */
+  closedAt: number | null
   isDraft: boolean
   mergeBlocked: boolean
   /** Branch the PR merges into (e.g. develop, release/2.5) — null when unknown. */
@@ -67,6 +69,8 @@ export interface Issue {
 
 export interface ProviderResult {
   pulls: Pull[]
+  /** Recently completed PRs (for shipped-lists); open PRs stay in `pulls`. */
+  mergedPulls: Pull[]
   runs: Run[]
   issues: Issue[]
 }
@@ -94,6 +98,10 @@ export interface Lanes {
   needsMyReview: ReviewPull[]
   myPulls: OwnPull[]
   myIssues: Issue[]
+  /** My PRs merged in the last 7 days — the "shipped" list. */
+  myMerged: Pull[]
+  /** Open PRs from bots (Snyk, Dependabot, Renovate) — corralled, not mixed in. */
+  botPulls: Pull[]
   runs: Run[]
 }
 
