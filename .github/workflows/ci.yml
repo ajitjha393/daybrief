@@ -31,6 +31,6 @@ jobs:
           curl -sf http://localhost:4455/api/state | node -e "
             let s=''; process.stdin.on('data',(c)=>s+=c).on('end',()=>{
               const d=JSON.parse(s);
-              if (d.lanes.needsMyReview.length !== 3) { console.error('unexpected lanes'); process.exit(1); }
+              if (d.lanes.needsMyReview.length !== 4) { console.error('unexpected lanes'); process.exit(1); } // 3 direct + 1 via group
               console.log('smoke ok:', d.lanes.needsMyReview.length, 'reviews waiting');
             })"
