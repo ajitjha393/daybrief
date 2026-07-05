@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 — 2026-07-05
+
+### Added
+- **Standup draft, PO/SM-grade** — Done (your PRs merged in the last 7d,
+  with target branches and ages) → Doing → PRs → Reviews owed → Blockers
+  (only when real)
+- **Automated-PR corral** — Snyk/Dependabot/Renovate PRs get their own
+  collapsed section and never queue as your reviews or on the team wall
+- **Merged-PR fetch** (ADO completed status, best-effort per project)
+
+### Fixed
+- Team pulse shows one row per human — display-name and account-name
+  variants merge by canonical name and identity overlap
+- Team view layout: two-column grid, full-width blocked lane
+
 ## 0.2.0 — 2026-07-05
 
 ### Added
