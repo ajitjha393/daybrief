@@ -1,4 +1,4 @@
-import type { OwnPull, Pull } from '../../../shared/types'
+import type { OwnPull, Pull, ReviewPull } from '../../../shared/types'
 import { ago, ageLevel } from '../format'
 
 const VOTE_LABEL: Record<Pull['reviewers'][number]['vote'], string> = {
@@ -9,7 +9,8 @@ const VOTE_LABEL: Record<Pull['reviewers'][number]['vote'], string> = {
   rejected: '✕',
 }
 
-export function PullCard({ pull }: { pull: Pull }) {
+export function PullCard({ pull }: { pull: Pull | ReviewPull }) {
+  const via = 'via' in pull ? pull.via : null
   return (
     <article className="card">
       <div className="title">
@@ -22,6 +23,7 @@ export function PullCard({ pull }: { pull: Pull }) {
         <span className={`age ${ageLevel(pull.createdAt)}`}>{ago(pull.createdAt)}</span>
         <span>{pull.author.name}</span>
         {pull.targetBranch !== null && <span>→ {pull.targetBranch}</span>}
+        {via !== null && <span className="badge warn">via {via}</span>}
         {pull.isDraft && <span className="badge">draft</span>}
         {pull.mergeBlocked && <span className="badge bad">merge conflict</span>}
       </div>
