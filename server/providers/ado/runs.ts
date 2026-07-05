@@ -25,6 +25,7 @@ export async function fetchRuns(cfg: AdoConfig): Promise<Run[]> {
     for (const raw of data.value) {
       const name = raw.definition?.name
       if (name === undefined || latest.has(name)) continue
+      if (cfg.excludePipelines.some((x) => name.toLowerCase().includes(x.toLowerCase()))) continue
       latest.set(name, normalizeRun(raw))
     }
   }
