@@ -1,5 +1,6 @@
 import type { ProviderStatus } from '../../../shared/types'
 import { ago } from '../format'
+import { useTheme, type Theme } from '../useTheme'
 
 interface HeaderProps {
   me: string
@@ -8,7 +9,10 @@ interface HeaderProps {
   providers: ProviderStatus[]
 }
 
+const THEME_LABEL: Record<Theme, string> = { system: '◐ auto', light: '☀ light', dark: '☾ dark' }
+
 export function Header({ me, generatedAt, connected, providers }: HeaderProps) {
+  const { theme, cycle } = useTheme()
   return (
     <header className="top">
       <div className="logo">
@@ -29,6 +33,9 @@ export function Header({ me, generatedAt, connected, providers }: HeaderProps) {
         <span>
           {me} · as of {ago(generatedAt)} ago
         </span>
+        <button type="button" className="theme-btn" onClick={cycle} title="theme: system → light → dark">
+          {THEME_LABEL[theme]}
+        </button>
       </div>
     </header>
   )
