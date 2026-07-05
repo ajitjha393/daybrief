@@ -35,9 +35,17 @@ export function computeLanes(config: Config, results: ProviderResult[]): Lanes {
     }))
     .sort(byOldestFirst)
 
+  // With the default JQL (assignee = currentUser()) every issue is mine by
+  // construction — no identity re-check, which matters because Atlassian
+  // privacy settings routinely hide emailAddress. A custom JQL can return
+  // anyone's issues, so there we match identity. Some workflows put
+  // still-active states (e.g. "Pending Deployment") in the done category;
+  // includeStatuses names the ones to keep anyway.
+  const personalJql = config.jira !== null && config.jira.jql === null
+  const keepStatus = new Set(config.jira?.includeStatuses.map((s) => s.toLowerCase()) ?? [])
   const myIssues: Issue[] = issues
-    .filter((i) => isPerson(config.me.jira, i.assignee) || isPerson(config.me.name, i.assigneeName))
-    .filter((i) => i.statusCategory !== 'done')
+    .filter((i) => personalJql || isPerson(config.me.jira, i.assignee) || isPerson(config.me.name, i.assigneeName))
+    .filter((i) => i.statusCategory !== 'done' || keepStatus.has(i.status.toLowerCase()))
     .sort((a, b) => Number(b.blocked) - Number(a.blocked) || (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
 
   const sortedRuns: Run[] = [...runs].sort(

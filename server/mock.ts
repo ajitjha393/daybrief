@@ -13,7 +13,8 @@ export const mockConfig: Config = {
   me: { name: 'Alice Chen', ado: 'alice@acme.dev', jira: 'alice@acme.dev', bitbucket: 'alice-chen' },
   pollSeconds: 90,
   ado: { org: 'acme', projects: ['Fleet'], repos: [], auth: 'az' },
-  jira: { site: 'acme.atlassian.net', jql: null, emailEnv: 'JIRA_EMAIL', tokenEnv: 'JIRA_API_TOKEN' },
+  // Custom JQL in the demo so the identity-filtering path stays exercised.
+  jira: { site: 'acme.atlassian.net', jql: 'project = FLT', includeStatuses: [], emailEnv: 'JIRA_EMAIL', tokenEnv: 'JIRA_API_TOKEN' },
   bitbucket: null,
   people: [
     { name: 'Alice Chen', ado: 'alice@acme.dev', jira: 'alice@acme.dev', bitbucket: 'alice-chen' },
@@ -33,6 +34,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-web',
         author: { name: 'Ben Okafor', id: 'ben@acme.dev' },
         createdAt: now - 4.6 * D, updatedAt: null, isDraft: false, mergeBlocked: false,
+        targetBranch: 'develop',
         reviewers: [
           { name: 'Alice Chen', id: 'alice@acme.dev', vote: 'none', required: true },
           { name: 'Priya Nair', id: 'priya@acme.dev', vote: 'approved', required: false },
@@ -46,6 +48,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-api',
         author: { name: 'Priya Nair', id: 'priya@acme.dev' },
         createdAt: now - 1.2 * D, updatedAt: null, isDraft: false, mergeBlocked: true,
+        targetBranch: 'develop',
         reviewers: [{ name: 'Alice Chen', id: 'alice@acme.dev', vote: 'none', required: false }],
         ci: 'none',
       },
@@ -56,6 +59,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-web',
         author: { name: 'Marco Ruiz', id: 'marco@acme.dev' },
         createdAt: now - 3 * H, updatedAt: null, isDraft: false, mergeBlocked: false,
+        targetBranch: 'develop',
         reviewers: [{ name: 'Alice Chen', id: 'alice@acme.dev', vote: 'none', required: false }],
         ci: 'none',
       },
@@ -66,6 +70,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-web',
         author: { name: 'Alice Chen', id: 'alice@acme.dev' },
         createdAt: now - 2.8 * D, updatedAt: null, isDraft: false, mergeBlocked: false,
+        targetBranch: 'develop',
         reviewers: [
           { name: 'Ben Okafor', id: 'ben@acme.dev', vote: 'none', required: true },
           { name: 'Marco Ruiz', id: 'marco@acme.dev', vote: 'none', required: false },
@@ -79,6 +84,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-api',
         author: { name: 'Alice Chen', id: 'alice@acme.dev' },
         createdAt: now - 7 * H, updatedAt: null, isDraft: false, mergeBlocked: false,
+        targetBranch: 'release/3.2',
         reviewers: [{ name: 'Priya Nair', id: 'priya@acme.dev', vote: 'approved', required: true }],
         ci: 'none',
       },
@@ -89,6 +95,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         repo: 'fleet-mobile',
         author: { name: 'Alice Chen', id: 'alice@acme.dev' },
         createdAt: now - 2 * H, updatedAt: null, isDraft: true, mergeBlocked: false,
+        targetBranch: 'develop',
         reviewers: [],
         ci: 'none',
       },

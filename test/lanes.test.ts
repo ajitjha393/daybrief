@@ -47,11 +47,38 @@ describe('computeLanes', () => {
     expect(byName.myPulls.length).toBe(3)
   })
 
+  it('default (personal) JQL trusts every issue as mine — Atlassian may hide emails', () => {
+    const cfg = {
+      ...mockConfig,
+      me: { name: 'Someone Else Entirely', ado: null, jira: null, bitbucket: null },
+      jira: { ...(mockConfig.jira ?? { site: 's', emailEnv: 'E', tokenEnv: 'T', includeStatuses: [] }), jql: null },
+    }
+    const out = computeLanes(cfg, [mockResults(NOW)])
+    expect(out.myIssues.length).toBe(5) // all issues, Ben's included — the JQL scoped them
+  })
+
+  it('includeStatuses keeps named done-category statuses on the board', () => {
+    const issue = {
+      source: 'jira' as const, key: 'FLT-900', summary: 'Ship it', status: 'Pending Deployment',
+      statusCategory: 'done' as const, assignee: 'alice@acme.dev', assigneeName: 'Alice Chen',
+      priority: null, url: 'u', updatedAt: NOW, blocked: false,
+    }
+    const base = { pulls: [], runs: [], issues: [issue] }
+    const without = computeLanes(mockConfig, [base])
+    expect(without.myIssues).toEqual([])
+    const cfg = {
+      ...mockConfig,
+      jira: { ...(mockConfig.jira ?? { site: 's', emailEnv: 'E', tokenEnv: 'T', jql: null }), includeStatuses: ['pending deployment'] },
+    }
+    const withKeep = computeLanes(cfg, [base])
+    expect(withKeep.myIssues.map((i) => i.key)).toEqual(['FLT-900'])
+  })
+
   it('a rejected/approved vote means the PR no longer needs my review', () => {
     const pull: Pull = {
       source: 'ado', id: 1, key: 'r!1', title: 't', url: 'u', repo: 'r',
       author: { name: 'Ben Okafor', id: 'ben@acme.dev' },
-      createdAt: NOW, updatedAt: null, isDraft: false, mergeBlocked: false,
+      createdAt: NOW, updatedAt: null, isDraft: false, mergeBlocked: false, targetBranch: null,
       reviewers: [{ name: 'Alice Chen', id: 'alice@acme.dev', vote: 'approved', required: true }],
       ci: 'none',
     }

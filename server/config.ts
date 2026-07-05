@@ -23,6 +23,8 @@ const AdoSchema = z.object({
 const JiraSchema = z.object({
   site: z.string().min(1),
   jql: z.string().nullable().default(null),
+  /** Done-category statuses to keep on the board anyway (e.g. "Pending Deployment"). */
+  includeStatuses: z.array(z.string()).default([]),
   emailEnv: z.string().default('JIRA_EMAIL'),
   tokenEnv: z.string().default('JIRA_API_TOKEN'),
 })
