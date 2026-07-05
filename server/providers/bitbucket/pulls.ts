@@ -1,12 +1,14 @@
-import type { Pull } from '../../../shared/types.js'
+import type { Pull, Reviewer } from '../../../shared/types.js'
 import { ms, pullKey } from '../../../shared/normalize.js'
 import type { BitbucketConfig } from '../../config.js'
 import { bbGet } from './api.js'
-import { BbPullListSchema, type BbPull } from './schemas.js'
+import { BbPullDetailSchema, BbPullListSchema, type BbParticipant, type BbPull } from './schemas.js'
 
-// The Bitbucket PR *list* payload doesn't include reviewers or merge
-// checks — those need one call per PR (v0.2). We show what one page of
-// list data honestly knows: reviewers empty, mergeBlocked false.
+const DETAIL_LIMIT = 25
+const DETAIL_PARALLEL = 5
+
+// The list payload doesn't include reviewers — the newest PRs get one
+// detail call each for participants. Merge checks remain unknowable here.
 export async function fetchPulls(cfg: BitbucketConfig): Promise<Pull[]> {
   const out: Pull[] = []
   for (const repo of cfg.repos) {
@@ -17,7 +19,41 @@ export async function fetchPulls(cfg: BitbucketConfig): Promise<Pull[]> {
     )
     for (const raw of data.values) out.push(normalizePull(raw, cfg.workspace, repo))
   }
+  await enrichReviewers(cfg, out)
   return out
+}
+
+async function enrichReviewers(cfg: BitbucketConfig, pulls: Pull[]): Promise<void> {
+  const targets = [...pulls]
+    .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0))
+    .slice(0, DETAIL_LIMIT)
+  for (let i = 0; i < targets.length; i += DETAIL_PARALLEL) {
+    await Promise.all(
+      targets.slice(i, i + DETAIL_PARALLEL).map(async (pull) => {
+        try {
+          const detail = await bbGet(
+            cfg,
+            `/repositories/${encodeURIComponent(cfg.workspace)}/${encodeURIComponent(pull.repo)}/pullrequests/${pull.id}`,
+            BbPullDetailSchema,
+          )
+          pull.reviewers = reviewersFromParticipants(detail.participants)
+        } catch {
+          // reviewer detail is additive — a failure leaves the list empty
+        }
+      }),
+    )
+  }
+}
+
+export function reviewersFromParticipants(participants: BbParticipant[]): Reviewer[] {
+  return participants
+    .filter((p) => p.role === 'REVIEWER')
+    .map((p) => ({
+      name: p.user?.display_name ?? 'unknown',
+      id: p.user?.nickname ?? null,
+      vote: p.approved ? 'approved' : p.state === 'changes_requested' ? 'rejected' : 'none',
+      required: false,
+    }))
 }
 
 export function normalizePull(raw: BbPull, workspace: string, repo: string): Pull {
