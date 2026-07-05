@@ -17,7 +17,7 @@ export function Header({ me, generatedAt, connected, providers, view }: HeaderPr
   return (
     <header className="top">
       <div className="logo">
-        <span className="mark">◆</span> daybrief
+        <img className="logo-icon" src="/icon.svg" alt="" width={22} height={22} /> daybrief
         <small>your day, briefed</small>
       </div>
       <div className="meta">
