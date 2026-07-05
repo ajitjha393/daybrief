@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useSnapshot } from './useSnapshot'
 import { Header } from './components/Header'
 import { Lane } from './components/Lane'
@@ -8,6 +9,7 @@ import { plural } from './format'
 
 export function App() {
   const { snapshot, connected } = useSnapshot()
+  const [showQuiet, setShowQuiet] = useState(false)
 
   if (snapshot === null) {
     return (
@@ -69,9 +71,33 @@ export function App() {
             ? `— ${plural(failing.length, 'failure')} ${failing.length === 1 ? 'needs' : 'need'} eyes`
             : '— all quiet'}
         </h2>
-        {lanes.runs.map((run) => (
-          <RunRow key={`${run.source}-${run.id}`} run={run} />
-        ))}
+        {/* Failures and in-flight runs are the news; the green wall collapses. */}
+        {lanes.runs
+          .filter((r) => r.status === 'failed' || r.status === 'running')
+          .map((run) => (
+            <RunRow key={`${run.source}-${run.id}`} run={run} />
+          ))}
+        {(() => {
+          const quiet = lanes.runs.filter((r) => r.status === 'ok' || r.status === 'none')
+          if (quiet.length === 0) return null
+          if (!showQuiet) {
+            return (
+              <button type="button" className="quiet-toggle" onClick={() => setShowQuiet(true)}>
+                + {plural(quiet.length, 'quiet pipeline')} (all green or idle)
+              </button>
+            )
+          }
+          return (
+            <>
+              {quiet.map((run) => (
+                <RunRow key={`${run.source}-${run.id}`} run={run} />
+              ))}
+              <button type="button" className="quiet-toggle" onClick={() => setShowQuiet(false)}>
+                − hide quiet pipelines
+              </button>
+            </>
+          )
+        })()}
       </section>
 
       <footer>daybrief · read-only by design · state assembled locally from your own access</footer>
