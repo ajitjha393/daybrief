@@ -1,15 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSnapshot } from './useSnapshot'
 import { Header } from './components/Header'
 import { Lane } from './components/Lane'
 import { OwnPullCard, PullCard } from './components/PullCard'
 import { IssueCard } from './components/IssueCard'
 import { RunRow } from './components/RunRow'
+import { TeamView } from './components/TeamView'
+import { ProgressiveList } from './components/ProgressiveList'
 import { plural } from './format'
+
+type View = 'me' | 'team'
+
+function currentView(): View {
+  return location.hash === '#team' ? 'team' : 'me'
+}
 
 export function App() {
   const { snapshot, connected } = useSnapshot()
   const [showQuiet, setShowQuiet] = useState(false)
+  const [view, setView] = useState<View>(currentView)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    const onHash = (): void => setView(currentView())
+    addEventListener('hashchange', onHash)
+    return () => removeEventListener('hashchange', onHash)
+  }, [])
 
   if (snapshot === null) {
     return (
@@ -24,81 +40,105 @@ export function App() {
     )
   }
 
-  const { lanes, me, providers, generatedAt } = snapshot
+  const { lanes, team, me, providers, generatedAt, brief } = snapshot
   const failing = lanes.runs.filter((r) => r.status === 'failed')
+  const quiet = lanes.runs.filter((r) => r.status === 'ok' || r.status === 'none')
+  const loud = lanes.runs.filter((r) => r.status === 'failed' || r.status === 'running')
 
   return (
     <div className="wrap">
-      <Header me={me.name} generatedAt={generatedAt} connected={connected} providers={providers} />
+      <Header me={me.name} generatedAt={generatedAt} connected={connected} providers={providers} view={view} />
 
-      <main className="lanes">
-        <Lane
-          title="Needs your review"
-          count={lanes.needsMyReview.length}
-          hot
-          emptyText="Nothing waiting on you. Enjoy the coffee."
-        >
-          {lanes.needsMyReview.map((pull) => (
-            <PullCard key={`${pull.source}-${pull.key}`} pull={pull} />
-          ))}
-        </Lane>
+      {view === 'team' ? (
+        <TeamView team={team} />
+      ) : (
+        <>
+          <main className="lanes">
+            <Lane
+              title="Needs your review"
+              sub="assigned to you, or a group that likely includes you"
+              count={lanes.needsMyReview.length}
+              hot
+              emptyText="Nothing waiting on you. Enjoy the coffee."
+            >
+              <ProgressiveList
+                items={lanes.needsMyReview}
+                render={(pull) => <PullCard key={`${pull.source}-${pull.key}`} pull={pull} />}
+              />
+            </Lane>
 
-        <Lane
-          title="Your PRs in flight"
-          count={lanes.myPulls.length}
-          emptyText="Nothing of yours is open."
-        >
-          {lanes.myPulls.map((pull) => (
-            <OwnPullCard key={`${pull.source}-${pull.key}`} pull={pull} />
-          ))}
-        </Lane>
+            <Lane
+              title="Your PRs in flight"
+              sub="created by you, not merged yet"
+              count={lanes.myPulls.length}
+              emptyText="Nothing of yours is open."
+            >
+              <ProgressiveList
+                items={lanes.myPulls}
+                render={(pull) => <OwnPullCard key={`${pull.source}-${pull.key}`} pull={pull} />}
+              />
+            </Lane>
 
-        <Lane
-          title="Your tickets"
-          count={lanes.myIssues.length}
-          emptyText="No open tickets assigned to you."
-        >
-          {lanes.myIssues.map((issue) => (
-            <IssueCard key={issue.key} issue={issue} />
-          ))}
-        </Lane>
-      </main>
+            <Lane
+              title="Your tickets"
+              sub="assigned to you"
+              count={lanes.myIssues.length}
+              emptyText="No open tickets assigned to you."
+            >
+              <ProgressiveList
+                items={lanes.myIssues}
+                render={(issue) => <IssueCard key={issue.key} issue={issue} />}
+              />
+            </Lane>
+          </main>
 
-      <section className="runs">
-        <h2>
-          Pipelines{' '}
-          {failing.length > 0
-            ? `— ${plural(failing.length, 'failure')} ${failing.length === 1 ? 'needs' : 'need'} eyes`
-            : '— all quiet'}
-        </h2>
-        {/* Failures and in-flight runs are the news; the green wall collapses. */}
-        {lanes.runs
-          .filter((r) => r.status === 'failed' || r.status === 'running')
-          .map((run) => (
-            <RunRow key={`${run.source}-${run.id}`} run={run} />
-          ))}
-        {(() => {
-          const quiet = lanes.runs.filter((r) => r.status === 'ok' || r.status === 'none')
-          if (quiet.length === 0) return null
-          if (!showQuiet) {
-            return (
+          <section className="runs">
+            <h2>
+              Pipelines{' '}
+              {failing.length > 0
+                ? `— ${plural(failing.length, 'failure')} ${failing.length === 1 ? 'needs' : 'need'} eyes`
+                : '— all quiet'}
+            </h2>
+            {loud.map((run) => (
+              <RunRow key={`${run.source}-${run.id}`} run={run} />
+            ))}
+            {quiet.length > 0 && !showQuiet && (
               <button type="button" className="quiet-toggle" onClick={() => setShowQuiet(true)}>
                 + {plural(quiet.length, 'quiet pipeline')} (all green or idle)
               </button>
-            )
-          }
-          return (
-            <>
-              {quiet.map((run) => (
-                <RunRow key={`${run.source}-${run.id}`} run={run} />
-              ))}
-              <button type="button" className="quiet-toggle" onClick={() => setShowQuiet(false)}>
-                − hide quiet pipelines
-              </button>
-            </>
-          )
-        })()}
-      </section>
+            )}
+            {quiet.length > 0 && showQuiet && (
+              <>
+                <ProgressiveList items={quiet} render={(run) => <RunRow key={`${run.source}-${run.id}`} run={run} />} />
+                <button type="button" className="quiet-toggle" onClick={() => setShowQuiet(false)}>
+                  − hide quiet pipelines
+                </button>
+              </>
+            )}
+          </section>
+
+          {brief.length > 0 && (
+            <section className="runs brief">
+              <h2>
+                Standup, drafted
+                <button
+                  type="button"
+                  className="copy-btn"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(brief).then(() => {
+                      setCopied(true)
+                      setTimeout(() => setCopied(false), 1500)
+                    })
+                  }}
+                >
+                  {copied ? 'copied ✓' : 'copy'}
+                </button>
+              </h2>
+              <pre>{brief}</pre>
+            </section>
+          )}
+        </>
+      )}
 
       <footer>daybrief · read-only by design · state assembled locally from your own access</footer>
     </div>

@@ -7,11 +7,12 @@ interface HeaderProps {
   generatedAt: number
   connected: boolean
   providers: ProviderStatus[]
+  view: 'me' | 'team'
 }
 
 const THEME_LABEL: Record<Theme, string> = { system: '◐ auto', light: '☀ light', dark: '☾ dark' }
 
-export function Header({ me, generatedAt, connected, providers }: HeaderProps) {
+export function Header({ me, generatedAt, connected, providers, view }: HeaderProps) {
   const { theme, cycle } = useTheme()
   return (
     <header className="top">
@@ -20,6 +21,14 @@ export function Header({ me, generatedAt, connected, providers }: HeaderProps) {
         <small>your day, briefed</small>
       </div>
       <div className="meta">
+        <nav className="nav">
+          <a href="#" className={view === 'me' ? 'active' : undefined}>
+            me
+          </a>
+          <a href="#team" className={view === 'team' ? 'active' : undefined}>
+            team
+          </a>
+        </nav>
         {providers.map((p) => (
           <span key={p.id} className="provider" title={p.error ?? `${p.label}: ok`}>
             <span className={`dot ${p.ok ? 'ok' : 'err'}`} />
