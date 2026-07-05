@@ -34,6 +34,30 @@ export async function fetchPulls(cfg: AdoConfig): Promise<Pull[]> {
   return out
 }
 
+// Recently completed PRs — the raw material for "shipped" lists. One page
+// per project, newest completions first; consumers filter by author/date.
+export async function fetchMergedPulls(cfg: AdoConfig): Promise<Pull[]> {
+  const out: Pull[] = []
+  for (const project of cfg.projects) {
+    let data
+    try {
+      data = await adoGet(
+        cfg,
+        `${encodeURIComponent(project)}/_apis/git/pullrequests?searchCriteria.status=completed&$top=50&api-version=7.1`,
+        adoListSchema(AdoPullSchema),
+      )
+    } catch {
+      continue // merged history is a nice-to-have; open-PR errors already report
+    }
+    for (const raw of data.value) {
+      const repo = raw.repository?.name
+      if (cfg.repos.length > 0 && (repo === undefined || !cfg.repos.includes(repo))) continue
+      out.push(normalizePull(raw, cfg.org, project))
+    }
+  }
+  return out
+}
+
 export function normalizePull(raw: AdoPull, org: string, project: string): Pull {
   const repo = raw.repository?.name ?? 'unknown'
   const reviewers: Reviewer[] = raw.reviewers
@@ -63,6 +87,7 @@ export function normalizePull(raw: AdoPull, org: string, project: string): Pull 
     },
     createdAt: ms(raw.creationDate),
     updatedAt: null, // the ADO list payload doesn't carry a last-activity time
+    closedAt: ms(raw.closedDate),
     isDraft: raw.isDraft,
     mergeBlocked: raw.mergeStatus === 'conflicts' || raw.mergeStatus === 'failure',
     targetBranch: raw.targetRefName !== undefined ? raw.targetRefName.replace(/^refs\/heads\//, '') : null,

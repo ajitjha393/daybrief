@@ -25,6 +25,7 @@ export const AdoPullSchema = z.object({
   isDraft: z.boolean().default(false),
   mergeStatus: z.string().optional(),
   targetRefName: z.string().optional(),
+  closedDate: z.string().optional(),
   reviewers: z.array(AdoReviewerSchema).default([]),
 })
 
