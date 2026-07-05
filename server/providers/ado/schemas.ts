@@ -19,7 +19,7 @@ export const AdoReviewerSchema = AdoIdentitySchema.extend({
 export const AdoPullSchema = z.object({
   pullRequestId: z.number(),
   title: z.string().default('(untitled)'),
-  repository: z.object({ name: z.string() }).optional(),
+  repository: z.object({ name: z.string(), id: z.string().optional() }).optional(),
   createdBy: AdoIdentitySchema.optional(),
   creationDate: z.string().optional(),
   isDraft: z.boolean().default(false),
@@ -38,6 +38,11 @@ export const AdoBuildSchema = z.object({
   url: z.string().default(''),
   definition: z.object({ name: z.string() }).optional(),
   _links: z.object({ web: z.object({ href: z.string() }).optional() }).optional(),
+})
+
+export const AdoPrStatusSchema = z.object({
+  state: z.string().default('notSet'),
+  context: z.object({ name: z.string().default(''), genre: z.string().optional() }).optional(),
 })
 
 export function adoListSchema<T extends z.ZodType>(item: T) {
