@@ -6,17 +6,17 @@ const cfg: JiraConfig = { site: 's.atlassian.net', jql: null, emailEnv: 'DB_TEST
 
 afterEach(() => {
   vi.unstubAllEnvs()
-  setSecrets({ ado: null, jira: null, bitbucket: null })
+  setSecrets({ ado: null, jira: null, bitbucket: null, webhook: null })
 })
 
 describe('secret resolution', () => {
   it('falls back to the secrets file when env vars are absent', () => {
-    setSecrets({ ado: null, jira: { email: 'file@x.dev', token: 'file-token' }, bitbucket: null })
+    setSecrets({ ado: null, jira: { email: 'file@x.dev', token: 'file-token' }, bitbucket: null, webhook: null })
     expect(jiraCredentials(cfg)).toEqual({ email: 'file@x.dev', token: 'file-token' })
   })
 
   it('env vars win over the secrets file', () => {
-    setSecrets({ ado: null, jira: { email: 'file@x.dev', token: 'file-token' }, bitbucket: null })
+    setSecrets({ ado: null, jira: { email: 'file@x.dev', token: 'file-token' }, bitbucket: null, webhook: null })
     vi.stubEnv('DB_TEST_EMAIL', 'env@x.dev')
     vi.stubEnv('DB_TEST_TOKEN', 'env-token')
     expect(jiraCredentials(cfg)).toEqual({ email: 'env@x.dev', token: 'env-token' })
@@ -28,7 +28,7 @@ describe('secret resolution', () => {
 
   it('adoPat is null (not empty string) when nothing provides it', () => {
     expect(adoPat()).toBeNull()
-    setSecrets({ ado: { pat: 'p' }, jira: null, bitbucket: null })
+    setSecrets({ ado: { pat: 'p' }, jira: null, bitbucket: null, webhook: null })
     expect(adoPat()).toBe('p')
   })
 })

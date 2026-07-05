@@ -12,11 +12,12 @@ const SecretsSchema = z.object({
   ado: z.object({ pat: z.string().min(1) }).nullable().default(null),
   jira: z.object({ email: z.string().min(1), token: z.string().min(1) }).nullable().default(null),
   bitbucket: z.object({ user: z.string().min(1), appPassword: z.string().min(1) }).nullable().default(null),
+  webhook: z.object({ url: z.string().min(1) }).nullable().default(null),
 })
 
 export type Secrets = z.infer<typeof SecretsSchema>
 
-const EMPTY: Secrets = { ado: null, jira: null, bitbucket: null }
+const EMPTY: Secrets = { ado: null, jira: null, bitbucket: null, webhook: null }
 let current: Secrets = EMPTY
 
 export async function loadSecrets(path = 'daybrief.secrets.json'): Promise<{ found: boolean; error?: string }> {
@@ -54,6 +55,15 @@ export function jiraCredentials(cfg: JiraConfig): { email: string; token: string
     )
   }
   return { email, token }
+}
+
+export function digestWebhook(config: { digest: { webhookEnv: string } | null }): string {
+  const env = config.digest?.webhookEnv ?? 'DAYBRIEF_WEBHOOK_URL'
+  const url = process.env[env] ?? current.webhook?.url
+  if (!url) {
+    throw new Error(`digest needs the ${env} env var, or daybrief.secrets.json with {"webhook":{"url":"…"}} (a Teams/Slack incoming-webhook URL)`)
+  }
+  return url
 }
 
 export function bitbucketCredentials(cfg: BitbucketConfig): { user: string; token: string } {
