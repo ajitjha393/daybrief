@@ -2,6 +2,7 @@ import { copyFile, access } from 'node:fs/promises'
 import { execFile } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { loadConfig } from './config.js'
+import { loadSecrets } from './secrets.js'
 import { providers } from './providers/index.js'
 import { mockConfig, mockProvider } from './mock.js'
 import { Poller } from './poller.js'
@@ -64,6 +65,12 @@ async function runServe(): Promise<void> {
       process.exit(1)
     }
     config = loaded.config
+    const secrets = await loadSecrets(opt('secrets', 'daybrief.secrets.json'))
+    if (secrets.error !== undefined) {
+      console.error(secrets.error)
+      process.exit(1)
+    }
+    if (secrets.found) log('secrets: daybrief.secrets.json loaded (env vars still win)')
   }
 
   console.error(`\x1b[1m◆ daybrief\x1b[0m${mock ? ' — demo data' : ''}`)
