@@ -128,5 +128,9 @@ export interface StateSnapshot {
   team: TeamState
   /** Copy-pasteable standup draft; blockers included only when real. */
   brief: string
+  release: {
+    branches: { name: string; openPulls: number; mergedRecently: number; pipeline: Run | null }[]
+    unreleased: { key: string; ticket: string | null; title: string; url: string; targetBranch: string | null; closedAt: number | null }[]
+  }
   providers: ProviderStatus[]
 }

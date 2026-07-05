@@ -4,6 +4,7 @@ import type { Provider } from './providers/contract.js'
 import { computeLanes } from './lanes.js'
 import { computeTeam } from './teamlanes.js'
 import { buildBrief } from './brief.js'
+import { computeRelease } from './release.js'
 
 type Listener = (snapshot: StateSnapshot) => void
 
@@ -65,6 +66,7 @@ export class Poller {
       lanes,
       team: computeTeam(this.opts.config, results),
       brief: buildBrief(lanes),
+      release: computeRelease(results),
       providers: [...this.statuses.values()],
     }
     for (const fn of this.listeners) fn(this.snapshot)
