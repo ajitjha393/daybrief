@@ -12,6 +12,7 @@ const D = 24 * H
 export const mockConfig: Config = {
   me: { name: 'Alice Chen', ado: 'alice@acme.dev', jira: 'alice@acme.dev', bitbucket: 'alice-chen' },
   pollSeconds: 90,
+  digest: null,
   ado: { org: 'acme', projects: ['Fleet'], repos: [], excludePipelines: [], groupReviewRepos: [], auth: 'az' },
   // Custom JQL in the demo so the identity-filtering path stays exercised.
   jira: { site: 'acme.atlassian.net', jql: 'project = FLT', teamJql: null, includeStatuses: [], emailEnv: 'JIRA_EMAIL', tokenEnv: 'JIRA_API_TOKEN' },
@@ -40,7 +41,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
           { name: 'Alice Chen', id: 'alice@acme.dev', vote: 'none', required: true },
           { name: 'Priya Nair', id: 'priya@acme.dev', vote: 'approved', required: false },
         ],
-        ci: 'none',
+        ci: 'ok',
       },
       {
         source: 'ado', id: 4830, key: 'fleet-api!4830',
@@ -91,7 +92,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
           { name: 'Ben Okafor', id: 'ben@acme.dev', vote: 'none', required: true },
           { name: 'Marco Ruiz', id: 'marco@acme.dev', vote: 'none', required: false },
         ],
-        ci: 'none',
+        ci: 'failed',
       },
       {
         source: 'ado', id: 4828, key: 'fleet-api!4828',
@@ -103,7 +104,7 @@ export function mockResults(now: number = Date.now()): ProviderResult {
         targetBranch: 'release/3.2',
         groupReviewers: [],
         reviewers: [{ name: 'Priya Nair', id: 'priya@acme.dev', vote: 'approved', required: true }],
-        ci: 'none',
+        ci: 'ok',
       },
       {
         source: 'ado', id: 4842, key: 'fleet-web!4842',
