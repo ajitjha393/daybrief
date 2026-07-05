@@ -58,6 +58,17 @@ Updates stream in live (SSE); long lists render progressively as you scroll;
 a provider having a bad moment shows its error in the header while its last
 good data stays on the board.
 
+## The morning digest
+
+```sh
+npx daybrief digest --dry-run   # preview
+npx daybrief digest             # post to your channel webhook (cron-friendly)
+```
+
+With a `digest` block in the config, the server posts it daily at `digest.at`
+— daybrief for the people who'll never open a dashboard. The webhook URL is a
+secret: `DAYBRIEF_WEBHOOK_URL` env var or the secrets file.
+
 ## The stack nobody builds for
 
 GitHub teams get `gh dash`, Graphite, and a hundred pretty radiators. Teams on
