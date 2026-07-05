@@ -37,13 +37,19 @@ export async function fetchPulls(cfg: AdoConfig): Promise<Pull[]> {
 export function normalizePull(raw: AdoPull, org: string, project: string): Pull {
   const repo = raw.repository?.name ?? 'unknown'
   const reviewers: Reviewer[] = raw.reviewers
-    .filter((r) => !r.isContainer) // groups/teams aren't people
+    .filter((r) => !r.isContainer)
     .map((r) => ({
       name: r.displayName ?? 'unknown',
       id: r.uniqueName ?? r.id ?? null,
       vote: adoVote(r.vote),
       required: r.isRequired,
     }))
+  // Groups/teams (SG_* containers) aren't people, but they can include you —
+  // kept separately so the lanes can reason about them.
+  const groupReviewers = raw.reviewers
+    .filter((r) => r.isContainer)
+    // "[TEAM FOUNDATION]\SG_Developers" → "SG_Developers"
+    .map((r) => ({ name: (r.displayName ?? 'group').split('\\').pop() ?? 'group', vote: adoVote(r.vote) }))
   return {
     source: 'ado',
     id: raw.pullRequestId,
@@ -61,6 +67,7 @@ export function normalizePull(raw: AdoPull, org: string, project: string): Pull 
     mergeBlocked: raw.mergeStatus === 'conflicts' || raw.mergeStatus === 'failure',
     targetBranch: raw.targetRefName !== undefined ? raw.targetRefName.replace(/^refs\/heads\//, '') : null,
     reviewers,
+    groupReviewers,
     ci: 'none', // PR-level policy checks are a v0.2 call
   }
 }

@@ -33,6 +33,8 @@ export interface Pull {
   /** Branch the PR merges into (e.g. develop, release/2.5) — null when unknown. */
   targetBranch: string | null
   reviewers: Reviewer[]
+  /** Team/group reviewers (ADO containers like SG_Developers) — you might be inside one. */
+  groupReviewers: { name: string; vote: Vote }[]
   ci: RunStatus
 }
 
@@ -83,16 +85,40 @@ export interface OwnPull extends Pull {
   waitingOn: string[]
 }
 
+/** A pull needing my eyes — via a direct assignment, or via a group I'm likely in. */
+export interface ReviewPull extends Pull {
+  via: string | null
+}
+
 export interface Lanes {
-  needsMyReview: Pull[]
+  needsMyReview: ReviewPull[]
   myPulls: OwnPull[]
   myIssues: Issue[]
   runs: Run[]
+}
+
+/** One row of the team pulse — counts only, deliberately no rankings. */
+export interface PersonPulse {
+  name: string
+  openPulls: number
+  reviewsOwed: number
+  openIssues: number
+  blockedIssues: number
+}
+
+export interface TeamState {
+  /** Every open non-draft PR, oldest first — the wall of shame-free pressure. */
+  stalePulls: Pull[]
+  people: PersonPulse[]
+  blockedIssues: Issue[]
 }
 
 export interface StateSnapshot {
   generatedAt: number
   me: { name: string }
   lanes: Lanes
+  team: TeamState
+  /** Copy-pasteable standup draft; blockers included only when real. */
+  brief: string
   providers: ProviderStatus[]
 }

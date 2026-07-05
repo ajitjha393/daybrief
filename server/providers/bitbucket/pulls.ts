@@ -38,6 +38,7 @@ export function normalizePull(raw: BbPull, workspace: string, repo: string): Pul
     mergeBlocked: false,
     targetBranch: raw.destination?.branch?.name ?? null,
     reviewers: [],
+    groupReviewers: [],
     ci: 'none',
   }
 }
